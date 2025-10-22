@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ModelSearch } from "@/components/device/ModelSearch";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -103,9 +104,12 @@ export default function Home() {
               Save money on your next used device purchase. Compare prices from
               multiple platforms and find the best deal.
             </p>
-            <button className="px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+            <Link
+              href="/devices"
+              className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+            >
               Browse Devices
-            </button>
+            </Link>
           </div>
         </section>
       </main>

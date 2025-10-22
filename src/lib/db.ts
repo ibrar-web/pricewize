@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://ibrarjutt1997_db_user:JMWP3VMBUvAYfEtH@pricewize.76r16dx.mongodb.net/pricewize";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error("⚠️ MongoDB URI not defined in environment variables");
+  throw new Error(
+    "⚠️ MONGODB_URI not defined in environment variables. Please set it in .env.local"
+  );
 }
 
 interface CachedConnection {
@@ -44,7 +44,7 @@ export async function connectDB(): Promise<mongoose.Mongoose> {
     console.log("🔌 Connecting to MongoDB...");
 
     cached.promise = mongoose
-      .connect(MONGODB_URI, opts)
+      .connect(MONGODB_URI as string, opts)
       .then((mongoose) => {
         console.log("✅ MongoDB connected successfully");
         return mongoose;

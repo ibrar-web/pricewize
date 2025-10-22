@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CompareTable } from "@/components/device/CompareTable";
@@ -7,49 +8,93 @@ import { Device, Price } from "@/lib/schema";
 import { generateMetadata as generateSEOMeta } from "@/lib/seo/generateMeta";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { notFound } from "next/navigation";
+import { mockDevices, mockPrices } from "@/lib/mockData";
 
 interface PageProps {
   params: Promise<{ model: string }>;
 }
 
 async function getDeviceComparison(modelSlug: string) {
-  await connectDB();
+  const normalizedSlug = modelSlug.toLowerCase().replace(/\s+/g, "-");
 
-  const device = await Device.findOne({
-    modelSlug: modelSlug.toLowerCase().replace(/\s+/g, "-"),
-  });
+  try {
+    await connectDB();
 
-  if (!device) {
-    return null;
+    const device = await Device.findOne({
+      modelSlug: normalizedSlug,
+    });
+
+    if (!device) {
+      throw new Error("Device not found in MongoDB");
+    }
+
+    const prices = await Price.find({ deviceId: device._id }).sort({
+      price: 1,
+    });
+
+    if (prices.length === 0) {
+      throw new Error("No prices found for device");
+    }
+
+    const priceValues = prices.map((p) => p.price);
+    return {
+      device: {
+        id: device._id,
+        name: device.name,
+        brand: device.brand,
+        modelSlug: device.modelSlug,
+        category: device.category,
+        image: device.image,
+      },
+      model: device.name,
+      listings: prices,
+      lowestPrice: Math.min(...priceValues),
+      highestPrice: Math.max(...priceValues),
+      averagePrice: Math.round(
+        priceValues.reduce((a, b) => a + b, 0) / priceValues.length
+      ),
+      totalListings: prices.length,
+    };
+  } catch {
+    console.warn("⚠️ MongoDB failed, trying mock data for:", normalizedSlug);
+
+    // Fallback to mock data
+    const mockDevice = mockDevices.find(
+      (d) => d.modelSlug === normalizedSlug
+    );
+
+    if (!mockDevice) {
+      return null;
+    }
+
+    const mockListings = mockPrices.filter(
+      (p) => p.deviceId === mockDevice._id
+    );
+
+    if (mockListings.length === 0) {
+      return null;
+    }
+
+    const priceValues = mockListings.map((p) => p.price);
+    return {
+      device: {
+        id: mockDevice._id,
+        name: mockDevice.name,
+        brand: mockDevice.brand,
+        modelSlug: mockDevice.modelSlug,
+        category: mockDevice.category,
+        image: mockDevice.image,
+      },
+      model: mockDevice.name,
+      listings: mockListings,
+      lowestPrice: Math.min(...priceValues),
+      highestPrice: Math.max(...priceValues),
+      averagePrice: Math.round(
+        priceValues.reduce((a, b) => a + b, 0) / priceValues.length
+      ),
+      totalListings: mockListings.length,
+    };
   }
-
-  const prices = await Price.find({ deviceId: device._id }).sort({
-    price: 1,
-  });
-
-  if (prices.length === 0) {
-    return null;
-  }
-
-  const priceValues = prices.map((p) => p.price);
-  return {
-    device: {
-      id: device._id,
-      name: device.name,
-      brand: device.brand,
-      modelSlug: device.modelSlug,
-      category: device.category,
-      image: device.image,
-    },
-    model: device.name,
-    listings: prices,
-    lowestPrice: Math.min(...priceValues),
-    highestPrice: Math.max(...priceValues),
-    averagePrice: Math.round(
-      priceValues.reduce((a, b) => a + b, 0) / priceValues.length
-    ),
-    totalListings: prices.length,
-  };
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -121,13 +166,13 @@ export default async function DevicePage({ params }: PageProps) {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav className="flex items-center gap-2 text-sm text-gray-600">
-              <a href="/" className="hover:text-blue-600">
+              <Link href="/" className="hover:text-blue-600">
                 Home
-              </a>
+              </Link>
               <span>/</span>
-              <a href="/devices" className="hover:text-blue-600">
+              <Link href="/devices" className="hover:text-blue-600">
                 Devices
-              </a>
+              </Link>
               <span>/</span>
               <span className="text-gray-900 font-medium">{comparison.model}</span>
             </nav>
