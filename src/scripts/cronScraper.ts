@@ -10,7 +10,8 @@
  */
 
 import { runAllScrapers } from "../lib/scraper/index";
-import { connectDB, clearOldListings } from "../lib/db";
+import { connectDB } from "../lib/db";
+import { Price, ScrapeLog } from "../lib/schema";
 
 async function main() {
   console.log("🚀 Starting cron scraper at", new Date().toISOString());
@@ -37,9 +38,24 @@ async function main() {
       }
     });
 
-    // Clean up old listings (older than 30 days)
+    // Log scrape results to database
+    console.log("\n📝 Logging scrape results...");
+    for (const result of results) {
+      await ScrapeLog.create({
+        platform: result.platform,
+        status: result.success ? "success" : "error",
+        message: result.error || "Scraping completed successfully",
+        itemsScraped: result.itemsScraped,
+        duration: result.timestamp ? Date.now() - result.timestamp.getTime() : 0,
+      });
+    }
+    console.log("✅ Scrape results logged");
+
+    // Clean up old prices (older than 30 days)
     console.log("\n🧹 Cleaning up old listings...");
-    const deleted = await clearOldListings(30);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const deleted = await Price.deleteMany({ lastScraped: { $lt: cutoffDate } });
     console.log(`  ✅ Deleted ${deleted.deletedCount} old listings`);
 
     console.log("\n✅ Cron scraper completed successfully at", new Date().toISOString());

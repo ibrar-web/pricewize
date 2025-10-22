@@ -1,7 +1,6 @@
 import { scrapeOLX } from "./olxScraper";
 import { scrapeCashify } from "./cashifyScraper";
 import { scrapeEBay } from "./ebayScraper";
-import { saveDeviceListing } from "@/lib/db";
 import { ScraperResult } from "@/types/device";
 
 /**

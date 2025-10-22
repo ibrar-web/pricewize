@@ -1,32 +1,57 @@
 import mongoose from "mongoose";
-import { DeviceListing } from "@/types/device";
 
-const MONGODB_URI = process.env.MONGODB_URI || "";
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://ibrarjutt1997_db_user:JMWP3VMBUvAYfEtH@pricewize.76r16dx.mongodb.net/pricewize";
 
 if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable");
+  throw new Error("⚠️ MongoDB URI not defined in environment variables");
 }
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+interface CachedConnection {
+  conn: mongoose.Mongoose | null;
+  promise: Promise<mongoose.Mongoose> | null;
 }
 
-export async function connectDB() {
+declare global {
+  var mongooseCache: CachedConnection;
+}
+
+let cached: CachedConnection = global.mongooseCache || { conn: null, promise: null };
+
+if (!global.mongooseCache) {
+  global.mongooseCache = cached;
+}
+
+/**
+ * Connect to MongoDB
+ * Uses connection caching to avoid multiple connections in serverless environments
+ */
+export async function connectDB(): Promise<mongoose.Mongoose> {
   if (cached.conn) {
+    console.log("✅ Using cached MongoDB connection");
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
+      dbName: "pricewize",
       bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 5,
     };
+
+    console.log("🔌 Connecting to MongoDB...");
 
     cached.promise = mongoose
       .connect(MONGODB_URI, opts)
       .then((mongoose) => {
+        console.log("✅ MongoDB connected successfully");
         return mongoose;
+      })
+      .catch((error) => {
+        console.error("❌ MongoDB connection error:", error);
+        throw error;
       });
   }
 
@@ -40,82 +65,23 @@ export async function connectDB() {
   return cached.conn;
 }
 
-// Device Schema
-const deviceSchema = new mongoose.Schema(
-  {
-    model: { type: String, required: true, index: true },
-    price: { type: Number, required: true },
-    condition: { type: String, enum: ["Excellent", "Good", "Fair", "Poor"] },
-    location: String,
-    platform: {
-      type: String,
-      enum: ["OLX", "Cashify", "eBay", "Other"],
-      required: true,
-    },
-    url: { type: String, required: true, unique: true },
-    sellerName: String,
-    description: String,
-    images: [String],
-  },
-  { timestamps: true }
-);
-
-// Create or get model
-export const Device =
-  mongoose.models.Device || mongoose.model("Device", deviceSchema);
-
-// Database operations
-export async function getDeviceData(model: string): Promise<DeviceListing[]> {
-  await connectDB();
-  const normalizedModel = model.replace(/-/g, " ");
-  return Device.find({
-    model: { $regex: normalizedModel, $options: "i" },
-  }).sort({ price: 1 });
-}
-
-export async function getDeviceComparison(model: string) {
-  await connectDB();
-  const normalizedModel = model.replace(/-/g, " ");
-  const listings = await Device.find({
-    model: { $regex: normalizedModel, $options: "i" },
-  }).sort({ price: 1 });
-
-  if (listings.length === 0) {
-    return null;
+/**
+ * Disconnect from MongoDB
+ * Useful for cleanup in tests or graceful shutdown
+ */
+export async function disconnectDB(): Promise<void> {
+  if (cached.conn) {
+    await mongoose.disconnect();
+    cached.conn = null;
+    cached.promise = null;
+    console.log("✅ MongoDB disconnected");
   }
-
-  const prices = listings.map((l) => l.price);
-  return {
-    model: normalizedModel,
-    listings,
-    lowestPrice: Math.min(...prices),
-    highestPrice: Math.max(...prices),
-    averagePrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
-    totalListings: listings.length,
-  };
 }
 
-export async function saveDeviceListing(data: DeviceListing) {
-  await connectDB();
-  return Device.findOneAndUpdate({ url: data.url }, data, {
-    upsert: true,
-    new: true,
-  });
-}
+/**
+ * Database Utilities
+ * Import models from @/lib/schema for all database operations
+ */
 
-export async function getAllDevices() {
-  await connectDB();
-  return Device.find({}).sort({ createdAt: -1 }).limit(100);
-}
-
-export async function clearOldListings(daysOld: number = 30) {
-  await connectDB();
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - daysOld);
-  return Device.deleteMany({ updatedAt: { $lt: cutoffDate } });
-}
-
-declare global {
-  var mongoose: any;
-}
+export { Device, Price, ScrapeLog } from "@/lib/schema";
 

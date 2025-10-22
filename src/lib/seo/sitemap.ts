@@ -1,4 +1,5 @@
-import { getAllDevices } from "@/lib/db";
+import { connectDB } from "@/lib/db";
+import { Device } from "@/lib/schema";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com";
 
@@ -21,20 +22,15 @@ export async function generateSitemapEntries(): Promise<SitemapEntry[]> {
   });
 
   try {
-    // Get all unique device models
-    const devices = await getAllDevices();
-    const uniqueModels = new Set<string>();
-
-    devices.forEach((device) => {
-      uniqueModels.add(device.model);
-    });
+    // Get all devices
+    await connectDB();
+    const devices = await Device.find({}).select("modelSlug lastUpdated");
 
     // Add device pages
-    uniqueModels.forEach((model) => {
-      const slug = model.toLowerCase().replace(/\s+/g, "-");
+    devices.forEach((device) => {
       entries.push({
-        url: `${SITE_URL}/devices/${slug}`,
-        lastmod: new Date().toISOString().split("T")[0],
+        url: `${SITE_URL}/devices/${device.modelSlug}`,
+        lastmod: device.lastUpdated.toISOString().split("T")[0],
         changefreq: "daily",
         priority: 0.8,
       });

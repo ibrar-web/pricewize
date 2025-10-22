@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getDeviceComparison } from "@/lib/db";
+import { connectDB } from "@/lib/db";
+import { Device, Price } from "@/lib/schema";
 
 /**
  * GET /api/devices/[model]
@@ -22,17 +23,69 @@ export async function GET(
       );
     }
 
-    const comparison = await getDeviceComparison(model);
+    await connectDB();
 
-    if (!comparison) {
+    // Find device by modelSlug
+    const device = await Device.findOne({
+      modelSlug: model.toLowerCase().replace(/\s+/g, "-"),
+    });
+
+    if (!device) {
       return NextResponse.json(
         {
           success: false,
-          error: "No listings found for this model",
+          error: "Device not found",
         },
         { status: 404 }
       );
     }
+
+    // Get all prices for this device
+    const prices = await Price.find({ deviceId: device._id }).sort({
+      price: 1,
+    });
+
+    if (prices.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "No listings found for this device",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Calculate statistics
+    const priceValues = prices.map((p) => p.price);
+    const comparison = {
+      device: {
+        id: device._id,
+        name: device.name,
+        brand: device.brand,
+        modelSlug: device.modelSlug,
+        category: device.category,
+        image: device.image,
+      },
+      listings: prices,
+      statistics: {
+        lowestPrice: Math.min(...priceValues),
+        highestPrice: Math.max(...priceValues),
+        averagePrice: Math.round(
+          priceValues.reduce((a, b) => a + b, 0) / priceValues.length
+        ),
+        totalListings: prices.length,
+        byPlatform: prices.reduce(
+          (acc, p) => {
+            if (!acc[p.platform]) {
+              acc[p.platform] = 0;
+            }
+            acc[p.platform]++;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
+      },
+    };
 
     return NextResponse.json(
       {

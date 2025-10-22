@@ -2,13 +2,54 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CompareTable } from "@/components/device/CompareTable";
 import { PriceCard } from "@/components/device/PriceCard";
-import { getDeviceComparison } from "@/lib/db";
+import { connectDB } from "@/lib/db";
+import { Device, Price } from "@/lib/schema";
 import { generateMetadata as generateSEOMeta } from "@/lib/seo/generateMeta";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ model: string }>;
+}
+
+async function getDeviceComparison(modelSlug: string) {
+  await connectDB();
+
+  const device = await Device.findOne({
+    modelSlug: modelSlug.toLowerCase().replace(/\s+/g, "-"),
+  });
+
+  if (!device) {
+    return null;
+  }
+
+  const prices = await Price.find({ deviceId: device._id }).sort({
+    price: 1,
+  });
+
+  if (prices.length === 0) {
+    return null;
+  }
+
+  const priceValues = prices.map((p) => p.price);
+  return {
+    device: {
+      id: device._id,
+      name: device.name,
+      brand: device.brand,
+      modelSlug: device.modelSlug,
+      category: device.category,
+      image: device.image,
+    },
+    model: device.name,
+    listings: prices,
+    lowestPrice: Math.min(...priceValues),
+    highestPrice: Math.max(...priceValues),
+    averagePrice: Math.round(
+      priceValues.reduce((a, b) => a + b, 0) / priceValues.length
+    ),
+    totalListings: prices.length,
+  };
 }
 
 export async function generateMetadata({ params }: PageProps) {

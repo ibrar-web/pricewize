@@ -1,32 +1,41 @@
 import { NextResponse } from "next/server";
-import { getAllDevices } from "@/lib/db";
+import { connectDB } from "@/lib/db";
+import { Device } from "@/lib/schema";
 
 /**
  * GET /api/devices
- * Fetch all device listings (paginated)
+ * Fetch all devices (paginated)
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
+    const category = searchParams.get("category");
 
-    const devices = await getAllDevices();
+    await connectDB();
 
-    // Simple pagination
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const paginatedDevices = devices.slice(start, end);
+    // Build query
+    const query = category ? { category } : {};
+
+    // Get total count
+    const total = await Device.countDocuments(query);
+
+    // Get paginated devices
+    const devices = await Device.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     return NextResponse.json(
       {
         success: true,
-        data: paginatedDevices,
+        data: devices,
         pagination: {
           page,
           limit,
-          total: devices.length,
-          pages: Math.ceil(devices.length / limit),
+          total,
+          pages: Math.ceil(total / limit),
         },
       },
       { status: 200 }
