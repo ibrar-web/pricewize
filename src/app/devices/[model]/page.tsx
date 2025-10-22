@@ -8,11 +8,12 @@ import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/struc
 import { notFound } from "next/navigation";
 
 interface PageProps {
-  params: { model: string };
+  params: Promise<{ model: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const comparison = await getDeviceComparison(params.model);
+  const { model } = await params;
+  const comparison = await getDeviceComparison(model);
 
   if (!comparison) {
     return {
@@ -51,7 +52,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function DevicePage({ params }: PageProps) {
-  const comparison = await getDeviceComparison(params.model);
+  const { model } = await params;
+  const comparison = await getDeviceComparison(model);
 
   if (!comparison) {
     notFound();
