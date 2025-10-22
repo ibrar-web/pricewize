@@ -83,5 +83,5 @@ export async function disconnectDB(): Promise<void> {
  * Import models from @/lib/schema for all database operations
  */
 
-export { Device, Price, ScrapeLog } from "@/lib/schema";
+export { Device, Price, ScrapeLog, PriceHistory, Platform, User } from "@/lib/schema";
 
