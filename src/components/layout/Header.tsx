@@ -33,6 +33,12 @@ export function Header() {
             >
               Browse
             </Link>
+            <Link
+              href="/compare"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+            >
+              Compare
+            </Link>
             <a
               href="#about"
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
@@ -43,9 +49,12 @@ export function Header() {
 
           {/* CTA */}
           <div className="hidden sm:block">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+            <Link
+              href="/devices"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-block"
+            >
               Get Started
-            </button>
+            </Link>
           </div>
         </div>
       </div>
