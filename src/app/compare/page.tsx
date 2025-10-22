@@ -117,12 +117,47 @@ export default function ComparePage() {
         {!canCompare ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-600 text-lg mb-4">Add at least 2 devices to compare</p>
-            <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
-              Browse Devices →
-            </Link>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                {devices.length === 0
+                  ? "Go to a device page and click 'Add to Compare' to get started"
+                  : `Add ${2 - devices.length} more device${2 - devices.length !== 1 ? "s" : ""} to compare`}
+              </p>
+              {devices.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-blue-900 font-medium mb-2">Devices added:</p>
+                  <ul className="text-blue-800 text-sm space-y-1">
+                    {devices.map((d) => (
+                      <li key={d.id}>• {d.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <Link href="/devices" className="inline-block text-blue-600 hover:text-blue-800 font-medium">
+                Browse Devices →
+              </Link>
+            </div>
           </div>
         ) : comparison ? (
           <div className="space-y-8">
+            {/* Add More Devices Section */}
+            {devices.length < 5 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  💡 Add More Devices
+                </h3>
+                <p className="text-blue-800 text-sm mb-4">
+                  You can compare up to 5 devices. Go to a device page and click "Add to Compare" to add more.
+                </p>
+                <Link
+                  href="/devices"
+                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Browse More Devices
+                </Link>
+              </div>
+            )}
+
             {/* Overall Statistics */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Overall Statistics</h2>

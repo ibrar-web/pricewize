@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CompareTable } from "@/components/device/CompareTable";
 import { PriceCard } from "@/components/device/PriceCard";
+import { CompareButton } from "@/components/device/CompareButton";
 import { connectDB } from "@/lib/db";
 import { Device, Price } from "@/lib/schema";
 import { generateMetadata as generateSEOMeta } from "@/lib/seo/generateMeta";
@@ -151,7 +152,7 @@ export default async function DevicePage({ params }: PageProps) {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-gray-50 pb-12">
         {/* Structured Data */}
         <script
           type="application/ld+json"
@@ -190,6 +191,15 @@ export default async function DevicePage({ params }: PageProps) {
               Compare {comparison.totalListings} listings from multiple platforms
             </p>
           </div>
+
+          {/* Add to Compare Button */}
+          <CompareButton
+            deviceId={comparison.device.id}
+            deviceName={comparison.model}
+            deviceBrand={comparison.device.brand}
+            deviceSlug={comparison.device.modelSlug}
+            deviceImage={comparison.device.image}
+          />
 
           {/* Comparison Table */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-12">
