@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { FeatureCard } from "@/components/ui/FeatureCard";
 import { DeviceCard } from "@/components/ui/DeviceCard";
 import { DeviceFilter, FilterState } from "@/components/home/DeviceFilter";
+import { TopBrands } from "@/components/home/TopBrands";
 import { TrendingDown, Zap, Globe, Shield } from "lucide-react";
 
 interface TrendingDevice {
@@ -177,6 +178,10 @@ export function HomeContent({
             </motion.div>
           )}
         </motion.div>
+
+        {/* Top Brands Section */}
+        <TopBrands />
+
         {/* Features Grid */}
         <motion.div
           initial={{ opacity: 0 }}

@@ -10,6 +10,7 @@ import { mockDevices } from "@/lib/mockData";
  *   - page: page number (default: 1)
  *   - limit: items per page (default: 20)
  *   - category: filter by category
+ *   - brand: filter by brand
  *   - search: search by name or brand
  *   - minPrice: minimum price filter (optional)
  *   - maxPrice: maximum price filter (optional)
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const category = searchParams.get("category");
+    const brand = searchParams.get("brand");
     const search = searchParams.get("search");
     const minPrice = searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")!) : undefined;
     const maxPrice = searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!) : undefined;
@@ -37,6 +39,10 @@ export async function GET(request: Request) {
 
       if (category) {
         query.category = category;
+      }
+
+      if (brand) {
+        query.brand = brand;
       }
 
       if (search) {

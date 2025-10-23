@@ -15,9 +15,11 @@
     "postbuild": "next-sitemap --config next-sitemap.config.js"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.1.2",
+    "class-variance-authority": "^0.7.1",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.24",
     "jsonwebtoken": "^9.0.2",

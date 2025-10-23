@@ -6,9 +6,9 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SearchBar } from "@/components/SearchBar";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { DeviceCard } from "@/components/ui/DeviceCard";
 import { SkeletonGrid } from "@/components/ui/Skeleton";
+import { BrandFilter } from "@/components/brand/BrandFilter";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 
 interface Device {
@@ -23,21 +23,27 @@ interface Device {
 
 export default function DevicesPage() {
   const [devices, setDevices] = useState<Device[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     fetchDevices();
-  }, []);
+  }, [selectedBrand, selectedCategory]);
 
   const fetchDevices = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await fetch("/api/devices");
+      const params = new URLSearchParams();
+      if (selectedBrand) params.append("brand", selectedBrand);
+      if (selectedCategory) params.append("category", selectedCategory);
+
+      const response = await fetch(`/api/devices?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch devices");
       }
@@ -85,17 +91,21 @@ export default function DevicesPage() {
           </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar and Filters */}
         <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
             <SearchBar onSearch={handleSearch} placeholder="Search for a device..." />
+            <BrandFilter
+              selectedBrand={selectedBrand}
+              selectedCategory={selectedCategory}
+              onBrandChange={setSelectedBrand}
+              onCategoryChange={setSelectedCategory}
+            />
           </div>
         </div>
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <LoadingOverlay isVisible={loading} message="Loading devices..." />
-
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -112,7 +122,7 @@ export default function DevicesPage() {
 
           {loading ? (
             <SkeletonGrid count={6} />
-          ) : !loading && displayDevices.length === 0 ? (
+          ) : displayDevices.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
