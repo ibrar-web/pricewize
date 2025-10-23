@@ -36,7 +36,7 @@ interface HomeContentProps {
 
 export function HomeContent({
   initialTrendingDevices = [],
-  initialLocations = []
+  initialLocations = [],
 }: HomeContentProps) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
@@ -94,8 +94,8 @@ export function HomeContent({
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <div className="text-center mb-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="text-center mb-4">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,9 +120,11 @@ export function HomeContent({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mb-8"
-        >
-        </motion.div>
+          className="flex justify-center mb-4"
+        ></motion.div>
+
+        {/* Top Brands Section */}
+        <TopBrands />
 
         {/* Devices Section with Filters */}
         <motion.div
@@ -130,7 +132,7 @@ export function HomeContent({
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mt-8"
+          className="mt-4"
         >
           <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
             Browse Devices
@@ -179,16 +181,13 @@ export function HomeContent({
           )}
         </motion.div>
 
-        {/* Top Brands Section */}
-        <TopBrands />
-
         {/* Features Grid */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6"
         >
           <FeatureCard
             icon={<TrendingDown size={24} />}
@@ -234,7 +233,7 @@ export function HomeContent({
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-6"
+        className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-4 mt-6"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h2

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BrandCard } from "@/components/brand/BrandCard";
-import { BrandGridSkeleton } from "@/components/brand/BrandSkeleton";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface Brand {
   brand: string;
@@ -12,66 +12,69 @@ interface Brand {
 
 export function TopBrands() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     const fetchBrands = async () => {
       try {
         const response = await fetch("/api/brands");
         if (!response.ok) throw new Error("Failed to fetch brands");
 
         const data = await response.json();
-        // Get top 8 brands
-        setBrands(data.data.slice(0, 8));
+        // Get top 12 brands
+        setBrands(data.data.slice(0, 12));
       } catch (err) {
         console.error("Error fetching brands:", err);
         setError("Failed to load brands");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchBrands();
   }, []);
 
-  if (error) {
-    return null; // Silently fail - don't break the page
+  if (error || loading) {
+    return null;
+  }
+
+  if (brands.length === 0) {
+    return null;
   }
 
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-8">
+    <section className="py-4 px-4 sm:px-6 lg:px-8 mb-4">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-            Top Brands
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Browse devices from the world's leading manufacturers
-          </p>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            Popular Brands
+          </h3>
         </div>
 
-        {/* Brands Grid */}
-        {!mounted || brands.length === 0 ? (
-          <BrandGridSkeleton count={8} />
-        ) : brands.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {brands.map((brand) => (
-              <BrandCard
-                key={brand.brand}
-                brand={brand.brand}
-                totalDevices={brand.totalDevices}
-                categories={brand.categories}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-slate-600 dark:text-slate-400">
-              No brands available yet
-            </p>
-          </div>
-        )}
+        {/* Compact Brands List */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {brands.map((brand, index) => (
+            <motion.div
+              key={brand.brand}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <Link href={`/brand/${brand.brand.toLowerCase()}`}>
+                <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer hover:shadow-md">
+                  <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">
+                    {brand.brand}
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    {brand.totalDevices} device{brand.totalDevices !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
