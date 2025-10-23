@@ -11,6 +11,9 @@ import { mockDevices } from "@/lib/mockData";
  *   - limit: items per page (default: 20)
  *   - category: filter by category
  *   - search: search by name or brand
+ *   - minPrice: minimum price filter (optional)
+ *   - maxPrice: maximum price filter (optional)
+ *   - location: filter by location (optional)
  * Falls back to mock data if MongoDB is not available
  */
 export async function GET(request: Request) {
@@ -20,6 +23,9 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const category = searchParams.get("category");
     const search = searchParams.get("search");
+    const minPrice = searchParams.get("minPrice") ? parseInt(searchParams.get("minPrice")!) : undefined;
+    const maxPrice = searchParams.get("maxPrice") ? parseInt(searchParams.get("maxPrice")!) : undefined;
+    const location = searchParams.get("location");
 
     try {
       await connectDB();
@@ -49,10 +55,17 @@ export async function GET(request: Request) {
         .limit(limit)
         .lean();
 
-      // Fetch lowest price for each device
-      const devicesWithPrices = await Promise.all(
+      // Fetch lowest price for each device and apply filters
+      let devicesWithPrices = await Promise.all(
         devices.map(async (device: any) => {
-          const lowestPrice = await Price.findOne({ deviceId: device._id })
+          let priceQuery: any = { deviceId: device._id };
+
+          // Apply location filter if provided
+          if (location) {
+            priceQuery.location = location;
+          }
+
+          const lowestPrice = await Price.findOne(priceQuery)
             .sort({ price: 1 })
             .select("price")
             .lean() as any;
@@ -64,6 +77,16 @@ export async function GET(request: Request) {
         })
       );
 
+      // Apply price range filters
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        devicesWithPrices = devicesWithPrices.filter((device: any) => {
+          if (device.lowestPrice === null) return false;
+          if (minPrice !== undefined && device.lowestPrice < minPrice) return false;
+          if (maxPrice !== undefined && device.lowestPrice > maxPrice) return false;
+          return true;
+        });
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -71,8 +94,8 @@ export async function GET(request: Request) {
           pagination: {
             page,
             limit,
-            total,
-            pages: Math.ceil(total / limit),
+            total: devicesWithPrices.length,
+            pages: Math.ceil(devicesWithPrices.length / limit),
           },
         },
         { status: 200 }

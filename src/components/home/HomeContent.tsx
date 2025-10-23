@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ModelSearch } from "@/components/device/ModelSearch";
+import { useState, useEffect } from "react";
 import { FeatureCard } from "@/components/ui/FeatureCard";
-import { TrendingCarousel } from "@/components/ui/TrendingCarousel";
+import { DeviceCard } from "@/components/ui/DeviceCard";
+import { DeviceFilter, FilterState } from "@/components/home/DeviceFilter";
 import { TrendingDown, Zap, Globe, Shield } from "lucide-react";
 
 interface TrendingDevice {
@@ -17,17 +18,92 @@ interface TrendingDevice {
   searches: number;
 }
 
+interface Device {
+  _id: string;
+  name: string;
+  brand: string;
+  modelSlug: string;
+  category: string;
+  image?: string;
+  lowestPrice?: number;
+}
+
 interface HomeContentProps {
   initialTrendingDevices?: TrendingDevice[];
 }
 
 export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
-  const trendingDevices = initialTrendingDevices;
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: "",
+    minPrice: 0,
+    maxPrice: 500000,
+    selectedLocation: "",
+  });
+
+  // Fetch devices on mount
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const response = await fetch("/api/devices?limit=50");
+        if (response.ok) {
+          const data = await response.json();
+          setDevices(data.data || []);
+
+          // Extract unique locations from prices
+          const priceRes = await fetch("/api/prices?limit=100");
+          if (priceRes.ok) {
+            const priceData = await priceRes.json();
+            const uniqueLocations = [
+              ...new Set(
+                (priceData.data || [])
+                  .map((p: any) => p.location)
+                  .filter(Boolean)
+              ),
+            ] as string[];
+            setLocations(uniqueLocations);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch devices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, []);
+
+  // Filter devices based on filters
+  useEffect(() => {
+    let filtered = devices;
+
+    // Search filter
+    if (filters.searchQuery) {
+      filtered = filtered.filter(
+        (d) =>
+          d.name.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+          d.brand.toLowerCase().includes(filters.searchQuery.toLowerCase())
+      );
+    }
+
+    // Price filter
+    filtered = filtered.filter(
+      (d) =>
+        (d.lowestPrice || 0) >= filters.minPrice &&
+        (d.lowestPrice || 0) <= filters.maxPrice
+    );
+
+    setFilteredDevices(filtered);
+  }, [devices, filters]);
 
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-24">
         <div className="text-center mb-12">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -55,9 +131,62 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex justify-center mb-16"
         >
-          <ModelSearch />
         </motion.div>
 
+        {/* Devices Section with Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="mt-20"
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Browse Devices
+          </h2>
+
+          {/* Filter Component */}
+          <DeviceFilter onFilterChange={setFilters} locations={locations} />
+
+          {/* Device Cards Grid */}
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading devices...</p>
+            </div>
+          ) : filteredDevices.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg shadow">
+              <p className="text-gray-600 text-lg">
+                {filters.searchQuery ||
+                filters.minPrice > 0 ||
+                filters.maxPrice < 500000 ||
+                filters.selectedLocation
+                  ? "No devices match your filters"
+                  : "No devices available"}
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredDevices.map((device, index) => (
+                <DeviceCard
+                  key={device._id}
+                  id={device._id}
+                  name={device.name}
+                  brand={device.brand}
+                  slug={device.modelSlug}
+                  category={device.category}
+                  image={device.image}
+                  lowestPrice={device.lowestPrice}
+                  index={index}
+                />
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
         {/* Features Grid */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -102,20 +231,6 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
             index={3}
           />
         </motion.div>
-
-        {/* Trending Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="mt-20"
-        >
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Trending Now
-          </h2>
-          <TrendingCarousel devices={trendingDevices} />
-        </motion.div>
       </section>
 
       {/* CTA Section */}
@@ -124,7 +239,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-12"
+        className="bg-linear-to-r from-blue-600 to-purple-600 text-white pb-6"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h2
@@ -165,4 +280,3 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
     </main>
   );
 }
-
