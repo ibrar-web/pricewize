@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runAllScrapers, runScraperByPlatform } from "@/lib/scraper";
+import { runAllScrapers } from "@/lib/scraper";
 
 /**
  * POST /api/scraper
@@ -20,16 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json().catch(() => ({}));
-    const platform = body.platform || "all";
-
-    let results;
-
-    if (platform === "all") {
-      results = await runAllScrapers();
-    } else {
-      results = await runScraperByPlatform(platform);
-    }
+    const results = await runAllScrapers();
 
     return NextResponse.json(
       {

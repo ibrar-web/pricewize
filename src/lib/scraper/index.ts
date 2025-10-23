@@ -1,34 +1,35 @@
-import { scrapeOLX } from "./olxScraper";
+import { scrapeOLXPakistan } from "./olxScraper";
 import { scrapeCashify } from "./cashifyScraper";
 import { scrapeEBay } from "./ebayScraper";
-import { ScraperResult } from "@/types/device";
 
 /**
  * Main scraper orchestrator
  * Runs all scrapers and saves results to database
  */
 
-export async function runAllScrapers(): Promise<ScraperResult[]> {
+export async function runAllScrapers(): Promise<any[]> {
   console.log("🚀 Starting all scrapers at", new Date().toISOString());
 
-  const results: ScraperResult[] = [];
+  const results: any[] = [];
 
   try {
     // Run scrapers in parallel
-    const [olxResult, cashifyResult, ebayResult] = await Promise.all([
-      scrapeOLX(),
-      scrapeCashify(),
-      scrapeEBay(),
+    const [olxListings, cashifyListings, ebayListings] = await Promise.all([
+      scrapeOLXPakistan("iPhone"),
+      scrapeCashify("iPhone"),
+      scrapeEBay("iPhone"),
     ]);
 
-    results.push(olxResult, cashifyResult, ebayResult);
+    results.push(
+      { platform: "OLX", count: olxListings.length, success: true },
+      { platform: "Cashify", count: cashifyListings.length, success: true },
+      { platform: "eBay", count: ebayListings.length, success: true }
+    );
 
     // Log results
     results.forEach((result) => {
       if (result.success) {
-        console.log(
-          `✅ ${result.platform}: ${result.itemsScraped} items scraped`
-        );
+        console.log(`✅ ${result.platform}: ${result.count} items scraped`);
       } else {
         console.error(`❌ ${result.platform}: ${result.error}`);
       }
@@ -42,31 +43,8 @@ export async function runAllScrapers(): Promise<ScraperResult[]> {
   return results;
 }
 
-export async function runScraperByPlatform(
-  platform: string
-): Promise<ScraperResult> {
-  console.log(`🚀 Starting ${platform} scraper`);
-
-  switch (platform.toLowerCase()) {
-    case "olx":
-      return scrapeOLX();
-    case "cashify":
-      return scrapeCashify();
-    case "ebay":
-      return scrapeEBay();
-    default:
-      return {
-        platform,
-        itemsScraped: 0,
-        timestamp: new Date(),
-        success: false,
-        error: "Unknown platform",
-      };
-  }
-}
-
-export { scrapeOLX, scrapeOLXByModel } from "./olxScraper";
-export { scrapeCashify, scrapeCashifyByModel } from "./cashifyScraper";
-export { scrapeEBay, scrapeEBayByModel } from "./ebayScraper";
+export { scrapeOLXPakistan, scrapeOLXPakistanWeb } from "./olxScraper";
+export { scrapeCashify, scrapeCashifyAPI } from "./cashifyScraper";
+export { scrapeEBay, scrapeEBayAPI } from "./ebayScraper";
 export { normalizeModel, extractBrand, extractCondition } from "./normalizeModel";
 

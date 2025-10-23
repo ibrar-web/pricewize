@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB, Device, Price } from "@/lib/db";
 import { calculatePriceStats, formatPrice } from "@/lib/utils/formatPrice";
+import mongoose from "mongoose";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,25 +25,37 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Fetch devices
-    const devices = await Device.find({ _id: { $in: deviceIds } }).lean();
+    // Convert string IDs to ObjectIds and validate
+    const validIds = deviceIds
+      .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
+      .map((id: string) => new mongoose.Types.ObjectId(id));
 
-    if (devices.length !== deviceIds.length) {
+    if (validIds.length === 0) {
       return NextResponse.json(
-        { success: false, error: "One or more devices not found" },
+        { success: false, error: "No valid device IDs provided" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch devices
+    const devices = await Device.find({ _id: { $in: validIds } }).lean();
+
+    if (devices.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "No devices found" },
         { status: 404 }
       );
     }
 
     // Fetch prices for all devices
-    const allPrices = await Price.find({ deviceId: { $in: deviceIds } })
+    const allPrices = await Price.find({ deviceId: { $in: validIds } })
       .sort({ price: 1 })
       .lean();
 
     // Group prices by device
-    const pricesByDevice = deviceIds.reduce(
+    const pricesByDevice = validIds.reduce(
       (acc, deviceId) => {
-        acc[deviceId] = allPrices.filter((p) => p.deviceId.toString() === deviceId);
+        acc[deviceId.toString()] = allPrices.filter((p) => p.deviceId.toString() === deviceId.toString());
         return acc;
       },
       {} as Record<string, typeof allPrices>

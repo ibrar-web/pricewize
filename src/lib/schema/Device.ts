@@ -6,6 +6,7 @@ export interface IDevice extends Document {
   modelSlug: string;
   category: string;
   image?: string;
+  images?: string[];
   description?: string;
   lastUpdated: Date;
   createdAt: Date;
@@ -42,6 +43,10 @@ const DeviceSchema = new Schema<IDevice>(
     image: {
       type: String,
       default: null,
+    },
+    images: {
+      type: [String],
+      default: [],
     },
     description: {
       type: String,
