@@ -1,10 +1,4 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
-
-/**
- * OLX Pakistan Scraper - Real implementation
- * Scrapes actual listings from OLX Pakistan
- */
+import { chromium } from "playwright";
 
 export interface OLXListing {
   title: string;
@@ -13,128 +7,164 @@ export interface OLXListing {
   location: string;
   url: string;
   image: string;
+  images?: string[];
   sellerName?: string;
   description?: string;
 }
 
 /**
- * Scrape OLX Pakistan for a specific search query
- * Returns real listings with actual URLs
+ * Scrape OLX Pakistan using Playwright for server-side rendering
+ * Handles JavaScript-rendered content and dynamic listings
  */
-export async function scrapeOLXPakistan(searchQuery: string): Promise<OLXListing[]> {
+export async function scrapeOLXPakistanWeb(searchQuery: string): Promise<OLXListing[]> {
+  let browser = null;
   try {
     const listings: OLXListing[] = [];
+    const searchUrl = `https://www.olx.com.pk/mobile-phones_c1453/q-${encodeURIComponent(searchQuery)}`;
 
-    // OLX Pakistan API endpoint for search
-    const searchUrl = `https://www.olx.com.pk/api/v1/search?q=${encodeURIComponent(searchQuery)}&limit=10`;
+    console.log(`📡 Launching Playwright browser for: ${searchUrl}`);
 
-    console.log(`🔍 Scraping OLX Pakistan for: ${searchQuery}`);
+    // Launch browser
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
 
-    const response = await axios.get(searchUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-      },
-      timeout: 15000,
-    });
+    // Set viewport
+    await page.setViewportSize({ width: 1280, height: 720 });
 
-    if (response.data && response.data.data && response.data.data.items) {
-      const items = response.data.data.items.slice(0, 10);
+    console.log(`🔍 Navigating to ${searchUrl}`);
+    try {
+      await page.goto(searchUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
+    } catch {
+      console.log("⚠️  Navigation timeout, continuing anyway...");
+    }
 
-      for (const item of items) {
+    // Wait for listings to render
+    console.log("⏳ Waiting for listings to render...");
+    try {
+      await page.waitForSelector("article", { timeout: 20000 });
+    } catch {
+      console.log("⚠️  Listings not found, trying to extract anyway...");
+    }
+
+    // Extract listings using page.$$eval
+    const listings_data = await page.$$eval("article", (articles) =>
+      articles.slice(0, 20).map((article) => {
         try {
-          const price = item.price || 0;
-          const title = item.title || "";
-          const url = item.url || `https://www.olx.com.pk${item.link}`;
-          const image = item.image?.url || item.thumbnail_url || "";
+          // Extract title from h2 tag
+          const title = article.querySelector("h2")?.textContent?.trim() || "";
 
-          if (title && price > 0) {
-            listings.push({
-              title,
-              price: parseInt(price.toString()),
-              condition: "Used",
-              location: item.location?.name || "Pakistan",
-              url,
-              image,
-              sellerName: item.seller?.name || "OLX Seller",
-              description: item.description || title,
-            });
+          // Extract price - try multiple selectors
+          let priceText = "";
+
+          // Try aria-label first
+          const priceByLabel = article.querySelector("span[aria-label='Price']");
+          if (priceByLabel) {
+            priceText = priceByLabel.textContent?.trim() || "";
           }
-        } catch (itemError) {
-          console.error("Error parsing OLX item:", itemError);
+
+          // If not found, try to find any span with price-like content
+          if (!priceText) {
+            const allSpans = article.querySelectorAll("span");
+            for (const span of allSpans) {
+              const text = span.textContent?.trim() || "";
+              // Look for price patterns (numbers with commas or "Lac")
+              if (/[\d,]+|lac/i.test(text) && text.length < 50) {
+                priceText = text;
+                break;
+              }
+            }
+          }
+
+          // Extract URL from link
+          const urlElement = article.querySelector("a[href*='/item/']") as HTMLAnchorElement;
+          const url = urlElement?.href || "";
+
+          // Extract image
+          const imgElement = article.querySelector("img") as HTMLImageElement;
+          const image = imgElement
+            ? imgElement.src || imgElement.getAttribute("data-src") || ""
+            : "";
+
+          // Extract location
+          const locationText =
+            article.querySelector("span[aria-label='Location']")?.textContent?.trim() || "";
+          const location = locationText.split("•")[0].trim();
+
+          return {
+            title,
+            priceText,
+            url,
+            image,
+            location,
+          };
+        } catch (e) {
+          console.error("Error extracting article data:", e);
+          return null;
         }
+      })
+    );
+
+    // Process extracted data
+    for (const item of listings_data) {
+      if (!item) continue;
+
+      try {
+        const { title, priceText, url, image, location } = item;
+
+        // Parse price - extract numbers only, handle "Rs" prefix and "Lac" suffix
+        let price = 0;
+        if (priceText) {
+          // Handle "Lac" (100,000)
+          if (priceText.toLowerCase().includes("lac")) {
+            const lacMatch = priceText.match(/[\d.]+/);
+            if (lacMatch) {
+              price = Math.round(parseFloat(lacMatch[0]) * 100000);
+            }
+          } else {
+            // Regular price - extract numbers only
+            const priceMatch = priceText.match(/[\d,]+/);
+            if (priceMatch) {
+              price = parseInt(priceMatch[0].replace(/,/g, "")) || 0;
+            }
+          }
+        }
+
+        // Only add if we have essential data
+        if (title && price > 0 && url && image) {
+          listings.push({
+            title,
+            price,
+            condition: "Used",
+            location: location || "Pakistan",
+            url,
+            image,
+            images: [image],
+            sellerName: "OLX Seller",
+            description: title,
+          });
+          console.log(`✅ Found: ${title} - PKR ${price}`);
+          console.log(`   Image: ${image}`);
+          console.log(`   URL: ${url}`);
+        }
+      } catch (itemError) {
+        console.error("Error processing OLX item:", itemError);
       }
     }
 
     console.log(`✅ Found ${listings.length} listings on OLX Pakistan`);
     return listings;
   } catch (error) {
-    console.error("❌ OLX Pakistan scraper error:", error instanceof Error ? error.message : error);
+    console.error("❌ OLX scraper error:", error instanceof Error ? error.message : error);
     return [];
+  } finally {
+    // Always close the browser
+    if (browser) {
+      await browser.close();
+      console.log("🔒 Browser closed");
+    }
   }
 }
 
-/**
- * Scrape OLX Pakistan using web scraping (fallback)
- */
-export async function scrapeOLXPakistanWeb(searchQuery: string): Promise<OLXListing[]> {
-  try {
-    const listings: OLXListing[] = [];
-
-    const searchUrl = `https://www.olx.com.pk/items/q-${encodeURIComponent(searchQuery)}`;
-
-    console.log(`🔍 Web scraping OLX Pakistan for: ${searchQuery}`);
-
-    const response = await axios.get(searchUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-      timeout: 15000,
-    });
-
-    const $ = cheerio.load(response.data);
-
-    // Parse OLX listings
-    $("div[data-testid='listing-item']").each((index, element) => {
-      if (index >= 10) return;
-
-      try {
-        const titleEl = $(element).find("a[data-testid='listing-title']");
-        const title = titleEl.text().trim();
-        const url = titleEl.attr("href") || "";
-
-        const priceEl = $(element).find("span[data-testid='listing-price']");
-        const priceText = priceEl.text().trim();
-
-        const imageEl = $(element).find("img");
-        const image = imageEl.attr("src") || "";
-
-        if (title && priceText && url) {
-          const price = parseInt(priceText.replace(/[^0-9]/g, "")) || 0;
-
-          if (price > 0) {
-            listings.push({
-              title,
-              price,
-              condition: "Used",
-              location: "Pakistan",
-              url: url.startsWith("http") ? url : `https://www.olx.com.pk${url}`,
-              image,
-              sellerName: "OLX Seller",
-              description: title,
-            });
-          }
-        }
-      } catch (itemError) {
-        console.error("Error parsing OLX item:", itemError);
-      }
-    });
-
-    console.log(`✅ Found ${listings.length} listings on OLX Pakistan (web)`);
-    return listings;
-  } catch (error) {
-    console.error("❌ OLX Pakistan web scraper error:", error instanceof Error ? error.message : error);
-    return [];
-  }
+export async function scrapeOLXPakistan(searchQuery: string): Promise<OLXListing[]> {
+  return scrapeOLXPakistanWeb(searchQuery);
 }
-

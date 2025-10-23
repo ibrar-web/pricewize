@@ -15,7 +15,7 @@ export interface UseScraperTriggerReturn {
   isScraperRunning: boolean;
   scraperError: string | null;
   scraperResult: ScraperResult | null;
-  triggerScraper: (platform?: "OLX" | "Cashify" | "eBay" | "all") => Promise<void>;
+  triggerScraper: (platform?: "OLX") => Promise<void>;
   clearResult: () => void;
 }
 
@@ -29,7 +29,7 @@ export function useScraperTrigger(): UseScraperTriggerReturn {
   const [scraperResult, setScraperResult] = useState<ScraperResult | null>(null);
 
   const triggerScraper = useCallback(
-    async (platform: "OLX" | "Cashify" | "eBay" | "all" = "all") => {
+    async (platform: "OLX" = "OLX") => {
       setIsScraperRunning(true);
       setScraperError(null);
       setScraperResult(null);

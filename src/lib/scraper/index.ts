@@ -1,29 +1,21 @@
 import { scrapeOLXPakistan } from "./olxScraper";
-import { scrapeCashify } from "./cashifyScraper";
-import { scrapeEBay } from "./ebayScraper";
 
 /**
  * Main scraper orchestrator
- * Runs all scrapers and saves results to database
+ * Runs OLX scraper only
  */
 
 export async function runAllScrapers(): Promise<any[]> {
-  console.log("🚀 Starting all scrapers at", new Date().toISOString());
+  console.log("🚀 Starting OLX scraper at", new Date().toISOString());
 
   const results: any[] = [];
 
   try {
-    // Run scrapers in parallel
-    const [olxListings, cashifyListings, ebayListings] = await Promise.all([
-      scrapeOLXPakistan("iPhone"),
-      scrapeCashify("iPhone"),
-      scrapeEBay("iPhone"),
-    ]);
+    // Run OLX scraper only
+    const olxListings = await scrapeOLXPakistan("iPhone");
 
     results.push(
-      { platform: "OLX", count: olxListings.length, success: true },
-      { platform: "Cashify", count: cashifyListings.length, success: true },
-      { platform: "eBay", count: ebayListings.length, success: true }
+      { platform: "OLX", count: olxListings.length, success: true }
     );
 
     // Log results
@@ -35,7 +27,7 @@ export async function runAllScrapers(): Promise<any[]> {
       }
     });
 
-    console.log("✅ All scrapers completed at", new Date().toISOString());
+    console.log("✅ OLX scraper completed at", new Date().toISOString());
   } catch (error) {
     console.error("Fatal scraper error:", error);
   }
@@ -44,7 +36,5 @@ export async function runAllScrapers(): Promise<any[]> {
 }
 
 export { scrapeOLXPakistan, scrapeOLXPakistanWeb } from "./olxScraper";
-export { scrapeCashify, scrapeCashifyAPI } from "./cashifyScraper";
-export { scrapeEBay, scrapeEBayAPI } from "./ebayScraper";
 export { normalizeModel, extractBrand, extractCondition } from "./normalizeModel";
 
