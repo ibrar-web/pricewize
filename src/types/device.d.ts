@@ -9,6 +9,7 @@ export interface DeviceListing {
   sellerName?: string;
   description?: string;
   images?: string[];
+  brand?: string;
   createdAt: Date;
   updatedAt: Date;
 }
