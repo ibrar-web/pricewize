@@ -7,33 +7,22 @@ import { FeatureCard } from "@/components/ui/FeatureCard";
 import { TrendingCarousel } from "@/components/ui/TrendingCarousel";
 import { TrendingDown, Zap, Globe, Shield } from "lucide-react";
 
-export function HomeContent() {
-  const trendingDevices = [
-    {
-      id: "1",
-      name: "iPhone 14 Pro",
-      brand: "Apple",
-      slug: "iphone-14-pro",
-      lowestPrice: 62500,
-      searches: 1234,
-    },
-    {
-      id: "2",
-      name: "Samsung Galaxy S24",
-      brand: "Samsung",
-      slug: "samsung-galaxy-s24",
-      lowestPrice: 75000,
-      searches: 987,
-    },
-    {
-      id: "3",
-      name: "MacBook Pro 16",
-      brand: "Apple",
-      slug: "macbook-pro-16",
-      lowestPrice: 250000,
-      searches: 654,
-    },
-  ];
+interface TrendingDevice {
+  id: string;
+  name: string;
+  brand: string;
+  slug: string;
+  image?: string;
+  lowestPrice: number;
+  searches: number;
+}
+
+interface HomeContentProps {
+  initialTrendingDevices?: TrendingDevice[];
+}
+
+export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
+  const trendingDevices = initialTrendingDevices;
 
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 to-white">

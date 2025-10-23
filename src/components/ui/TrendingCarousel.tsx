@@ -22,7 +22,7 @@ interface TrendingCarouselProps {
 export function TrendingCarousel({ devices }: TrendingCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
-
+console.log('tredning devices', devices);
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % devices.length);

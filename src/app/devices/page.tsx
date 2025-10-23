@@ -18,6 +18,7 @@ interface Device {
   modelSlug: string;
   category: string;
   image?: string;
+  lowestPrice?: number;
 }
 
 export default function DevicesPage() {
@@ -148,6 +149,7 @@ export default function DevicesPage() {
                   slug={device.modelSlug}
                   category={device.category}
                   image={device.image}
+                  lowestPrice={device.lowestPrice}
                   index={index}
                 />
               ))}
