@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCompare } from "@/lib/hooks";
 import { Plus, Check, X } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +21,7 @@ export function CompareButton({
   deviceSlug,
   deviceImage,
 }: CompareButtonProps) {
+  const router = useRouter();
   const { addDevice, isComparing, devices, removeDevice } = useCompare();
   const [showCompareModal, setShowCompareModal] = useState(false);
   const isInCompare = isComparing(deviceId);
@@ -33,6 +35,10 @@ export function CompareButton({
       category: "device",
       image: deviceImage,
     });
+    // Navigate to compare page after adding device
+    setTimeout(() => {
+      router.push("/compare");
+    }, 300);
   };
 
   const handleRemoveFromCompare = () => {

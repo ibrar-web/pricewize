@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCompare } from "@/lib/hooks";
 import { CompareTable, LoadingOverlay } from "@/components";
 import { DeviceSelectionModal } from "@/components/compare/DeviceSelectionModal";
+import { CompareCard } from "@/components/compare/CompareCard";
 import { Trash2, ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -243,39 +244,21 @@ export default function ComparePage() {
               />
             </div>
 
-            {/* Device Details */}
-            <div className="space-y-6">
-              {comparison.devices.map((device) => (
-                <div key={device.device.id} className="bg-white rounded-lg shadow p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900">{device.device.name}</h3>
-                      <p className="text-gray-600">{device.device.brand}</p>
-                    </div>
-                    <button
-                      onClick={() => removeDevice(device.device.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm">Lowest Price</p>
-                      <p className="text-xl font-bold text-green-600">{device.statistics.lowestPrice}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm">Average Price</p>
-                      <p className="text-xl font-bold text-blue-600">{device.statistics.averagePrice}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-600 text-sm">Listings</p>
-                      <p className="text-xl font-bold text-gray-900">{device.statistics.totalListings}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            {/* Device Details - Side by Side Cards */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Device Comparison Cards</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {comparison.devices.map((device, index) => (
+                  <CompareCard
+                    key={device.device.id}
+                    device={device.device}
+                    prices={device.prices}
+                    statistics={device.statistics}
+                    onRemove={removeDevice}
+                    index={index}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         ) : null}
