@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
         </form>
 
         <p className="text-center text-gray-600 text-sm mt-6">
-          Demo credentials: admin@pricewize.com / Admin@123
+          Demo credentials: admin@pricewize.com / admin123
         </p>
       </div>
     </div>

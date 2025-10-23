@@ -48,10 +48,16 @@ export function Header() {
           </nav>
 
           {/* CTA */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:flex items-center gap-3">
+            <Link
+              href="/admin/login"
+              className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+            >
+              Admin Login
+            </Link>
             <Link
               href="/devices"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium inline-block"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Get Started
             </Link>
