@@ -10,6 +10,10 @@ import { generateMetadata as generateSEOMeta } from "@/lib/seo/generateMeta";
 import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/seo/structuredData";
 import { notFound } from "next/navigation";
 import { mockDevices, mockPrices } from "@/lib/mockData";
+import { getDeviceWithPrices } from "@/lib/cache/dataCache";
+
+// ISR: Revalidate every 3600 seconds (1 hour)
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ model: string }>;
@@ -21,23 +25,15 @@ async function getDeviceComparison(modelSlug: string) {
   try {
     await connectDB();
 
-    const device = await Device.findOne({
-      modelSlug: normalizedSlug,
-    });
+    // Use optimized cached data fetching
+    const cachedData = await getDeviceWithPrices(normalizedSlug);
 
-    if (!device) {
-      throw new Error("Device not found in MongoDB");
+    if (!cachedData) {
+      throw new Error("Device not found");
     }
 
-    const prices = await Price.find({ deviceId: device._id }).sort({
-      price: 1,
-    });
+    const { device, prices, stats } = cachedData;
 
-    if (prices.length === 0) {
-      throw new Error("No prices found for device");
-    }
-
-    const priceValues = prices.map((p) => p.price);
     return {
       device: {
         id: device._id,
@@ -49,12 +45,10 @@ async function getDeviceComparison(modelSlug: string) {
       },
       model: device.name,
       listings: prices,
-      lowestPrice: Math.min(...priceValues),
-      highestPrice: Math.max(...priceValues),
-      averagePrice: Math.round(
-        priceValues.reduce((a, b) => a + b, 0) / priceValues.length
-      ),
-      totalListings: prices.length,
+      lowestPrice: stats.lowestPrice,
+      highestPrice: stats.highestPrice,
+      averagePrice: stats.averagePrice,
+      totalListings: stats.totalListings,
     };
   } catch {
     console.warn("⚠️ MongoDB failed, trying mock data for:", normalizedSlug);
@@ -263,7 +257,7 @@ export default async function DevicePage({ params }: PageProps) {
               All Listings
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {comparison.listings.map((listing, idx) => (
+              {comparison.listings.map((listing: any, idx: number) => (
                 <PriceCard key={idx} listing={listing} />
               ))}
             </div>

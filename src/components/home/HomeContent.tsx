@@ -30,12 +30,16 @@ interface Device {
 
 interface HomeContentProps {
   initialTrendingDevices?: TrendingDevice[];
+  initialLocations?: string[];
 }
 
-export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
+export function HomeContent({
+  initialTrendingDevices = [],
+  initialLocations = []
+}: HomeContentProps) {
   const [devices, setDevices] = useState<Device[]>([]);
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
-  const [locations, setLocations] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>(initialLocations);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: "",
@@ -52,20 +56,6 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
         if (response.ok) {
           const data = await response.json();
           setDevices(data.data || []);
-
-          // Extract unique locations from prices
-          const priceRes = await fetch("/api/prices?limit=100");
-          if (priceRes.ok) {
-            const priceData = await priceRes.json();
-            const uniqueLocations = [
-              ...new Set(
-                (priceData.data || [])
-                  .map((p: any) => p.location)
-                  .filter(Boolean)
-              ),
-            ] as string[];
-            setLocations(uniqueLocations);
-          }
         }
       } catch (error) {
         console.error("Failed to fetch devices:", error);

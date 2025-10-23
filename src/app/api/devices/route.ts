@@ -16,6 +16,8 @@ import { mockDevices } from "@/lib/mockData";
  *   - location: filter by location (optional)
  * Falls back to mock data if MongoDB is not available
  */
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -72,6 +74,7 @@ export async function GET(request: Request) {
 
           return {
             ...device,
+            _id: device._id.toString(),
             lowestPrice: lowestPrice?.price || null,
           };
         })
@@ -87,7 +90,7 @@ export async function GET(request: Request) {
         });
       }
 
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           success: true,
           data: devicesWithPrices,
@@ -100,6 +103,10 @@ export async function GET(request: Request) {
         },
         { status: 200 }
       );
+
+      // Add caching headers
+      response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+      return response;
     } catch (dbError) {
       console.warn("⚠️ MongoDB connection failed, using mock data");
       console.warn("To use real data, set MONGODB_URI in .env.local");
@@ -117,7 +124,7 @@ export async function GET(request: Request) {
         page * limit
       );
 
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           success: true,
           data: paginatedDevices,
@@ -131,6 +138,10 @@ export async function GET(request: Request) {
         },
         { status: 200 }
       );
+
+      // Add caching headers
+      response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+      return response;
     }
   } catch (error) {
     console.error("Error fetching devices:", error);
