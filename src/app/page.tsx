@@ -30,13 +30,21 @@ export const metadata = {
 };
 
 export default async function Home() {
-  await connectDB();
+  let trendingDevices = [];
+  let locations = [];
 
-  // Fetch data in parallel for better performance
-  const [trendingDevices, locations] = await Promise.all([
-    getTrendingDevices(),
-    getAllLocations(),
-  ]);
+  try {
+    await connectDB();
+
+    // Fetch data in parallel for better performance
+    [trendingDevices, locations] = await Promise.all([
+      getTrendingDevices(),
+      getAllLocations(),
+    ]);
+  } catch (error) {
+    console.warn("⚠️ Failed to fetch data from MongoDB during build/render:", error);
+    // Continue with empty data - will be fetched client-side
+  }
 
   return (
     <>

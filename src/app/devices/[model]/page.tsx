@@ -50,8 +50,8 @@ async function getDeviceComparison(modelSlug: string) {
       averagePrice: stats.averagePrice,
       totalListings: stats.totalListings,
     };
-  } catch {
-    console.warn("⚠️ MongoDB failed, trying mock data for:", normalizedSlug);
+  } catch (error) {
+    console.warn("⚠️ MongoDB failed, trying mock data for:", normalizedSlug, error);
 
     // Fallback to mock data
     const mockDevice = mockDevices.find(

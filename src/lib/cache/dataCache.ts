@@ -71,7 +71,7 @@ export async function getDevicesWithPrices(limit: number = 50) {
 
     return result;
   } catch (error) {
-    console.error("Error fetching devices with prices:", error);
+    console.warn("⚠️ Error fetching devices with prices (will use fallback):", error);
     return [];
   }
 }
@@ -114,7 +114,7 @@ export async function getTrendingDevices() {
 
     return trending;
   } catch (error) {
-    console.error("Error fetching trending devices:", error);
+    console.warn("⚠️ Error fetching trending devices (will use fallback):", error);
     return [];
   }
 }
@@ -138,7 +138,7 @@ export async function getAllLocations() {
 
     return result;
   } catch (error) {
-    console.error("Error fetching locations:", error);
+    console.warn("⚠️ Error fetching locations (will use fallback):", error);
     return [];
   }
 }
@@ -197,7 +197,7 @@ export async function getDeviceWithPrices(modelSlug: string) {
 
     return result;
   } catch (error) {
-    console.error("Error fetching device with prices:", error);
+    console.warn("⚠️ Error fetching device with prices (will use fallback):", error);
     return null;
   }
 }
