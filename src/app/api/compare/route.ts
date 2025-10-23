@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
           formattedPrice: formatPrice(p.price),
           condition: p.condition,
           location: p.location,
+          brand: p.brand,
+          url: p.url,
         })),
         statistics: {
           lowestPrice: formatPrice(stats.min),

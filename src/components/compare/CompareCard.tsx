@@ -11,6 +11,7 @@ interface Price {
   condition: string;
   location: string;
   url?: string;
+  brand?: string;
 }
 
 interface CompareCardProps {
@@ -122,18 +123,25 @@ export function CompareCard({
                 className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 transition-all"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">
-                      {price.platform}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                        {price.platform}
+                      </span>
+                      {price.brand && (
+                        <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                          {price.brand}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
                       Condition: <span className="font-medium">{price.condition}</span>
                     </p>
                     <p className="text-xs text-gray-600">
                       Location: <span className="font-medium">{price.location}</span>
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right ml-2">
                     <p className="text-lg font-bold text-blue-600">
                       {price.formattedPrice}
                     </p>

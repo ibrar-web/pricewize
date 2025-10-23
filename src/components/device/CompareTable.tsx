@@ -64,6 +64,9 @@ export function CompareTable({ comparison }: CompareTableProps) {
                 Platform
               </th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                Brand
+              </th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">
                 Price
               </th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700">
@@ -74,6 +77,9 @@ export function CompareTable({ comparison }: CompareTableProps) {
               </th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700">
                 Seller
+              </th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                Link
               </th>
             </tr>
           </thead>
@@ -89,8 +95,17 @@ export function CompareTable({ comparison }: CompareTableProps) {
                   </span>
                 </td>
                 <td className="py-3 px-4">
+                  {listing.brand ? (
+                    <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                      {listing.brand}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-sm">N/A</span>
+                  )}
+                </td>
+                <td className="py-3 px-4">
                   <span className="font-bold text-lg text-gray-900">
-                    ₹{listing.price.toLocaleString()}
+                    ₨{listing.price.toLocaleString()}
                   </span>
                 </td>
                 <td className="py-3 px-4">
@@ -101,6 +116,18 @@ export function CompareTable({ comparison }: CompareTableProps) {
                 <td className="py-3 px-4 text-gray-600">{listing.location}</td>
                 <td className="py-3 px-4 text-gray-600">
                   {listing.sellerName || "N/A"}
+                </td>
+                <td className="py-3 px-4">
+                  {listing.url && (
+                    <a
+                      href={listing.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 font-medium text-sm underline"
+                    >
+                      View
+                    </a>
+                  )}
                 </td>
               </tr>
             ))}

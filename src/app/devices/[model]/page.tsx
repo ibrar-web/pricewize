@@ -182,24 +182,75 @@ export default async function DevicePage({ params }: PageProps) {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              {comparison.model} - Price Comparison
-            </h1>
-            <p className="text-lg text-gray-600">
-              Compare {comparison.totalListings} listings from multiple platforms
-            </p>
-          </div>
+          {/* Device Header with Image */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Device Image */}
+            <div className="md:col-span-1">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden sticky top-4">
+                {comparison.device.image ? (
+                  <img
+                    src={comparison.device.image}
+                    alt={comparison.model}
+                    className="w-full h-auto object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-96 bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400">No image available</span>
+                  </div>
+                )}
+                <div className="p-4 bg-gray-50">
+                  <p className="text-sm text-gray-600 font-medium">Brand</p>
+                  <p className="text-lg font-bold text-gray-900">{comparison.device.brand}</p>
+                  <p className="text-sm text-gray-600 mt-2 font-medium">Category</p>
+                  <p className="text-lg font-bold text-gray-900 capitalize">{comparison.device.category}</p>
+                </div>
+              </div>
+            </div>
 
-          {/* Add to Compare Button */}
-          <CompareButton
-            deviceId={comparison.device.id}
-            deviceName={comparison.model}
-            deviceBrand={comparison.device.brand}
-            deviceSlug={comparison.device.modelSlug}
-            deviceImage={comparison.device.image}
-          />
+            {/* Device Info and Stats */}
+            <div className="md:col-span-2">
+              {/* Header */}
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  {comparison.model}
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Compare {comparison.totalListings} listings from multiple platforms
+                </p>
+              </div>
+
+              {/* Price Statistics */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                  <p className="text-sm text-green-700 font-medium">Lowest Price</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    ₨{comparison.lowestPrice.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                  <p className="text-sm text-blue-700 font-medium">Average Price</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    ₨{comparison.averagePrice.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                  <p className="text-sm text-red-700 font-medium">Highest Price</p>
+                  <p className="text-2xl font-bold text-red-900">
+                    ₨{comparison.highestPrice.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Add to Compare Button */}
+              <CompareButton
+                deviceId={comparison.device.id}
+                deviceName={comparison.model}
+                deviceBrand={comparison.device.brand}
+                deviceSlug={comparison.device.modelSlug}
+                deviceImage={comparison.device.image}
+              />
+            </div>
+          </div>
 
           {/* Comparison Table */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-12">

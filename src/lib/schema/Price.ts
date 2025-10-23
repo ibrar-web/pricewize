@@ -10,6 +10,7 @@ export interface IPrice extends Document {
   url: string;
   description?: string;
   images?: string[];
+  brand?: string;
   lastScraped: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -65,6 +66,11 @@ const PriceSchema = new Schema<IPrice>(
     images: {
       type: [String],
       default: [],
+    },
+    brand: {
+      type: String,
+      trim: true,
+      default: null,
     },
     lastScraped: {
       type: Date,

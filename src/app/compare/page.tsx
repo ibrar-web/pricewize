@@ -5,6 +5,7 @@ import { useCompare } from "@/lib/hooks";
 import { CompareTable, LoadingOverlay } from "@/components";
 import { DeviceSelectionModal } from "@/components/compare/DeviceSelectionModal";
 import { CompareCard } from "@/components/compare/CompareCard";
+import { PlatformStats } from "@/components/compare/PlatformStats";
 import { Trash2, ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -24,6 +25,8 @@ interface ComparisonData {
       formattedPrice: string;
       condition: string;
       location: string;
+      brand?: string;
+      url?: string;
     }>;
     statistics: {
       lowestPrice: string;
@@ -259,6 +262,11 @@ export default function ComparePage() {
                   />
                 ))}
               </div>
+            </div>
+
+            {/* Platform Statistics */}
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <PlatformStats />
             </div>
           </div>
         ) : null}

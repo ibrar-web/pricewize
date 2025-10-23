@@ -8,6 +8,8 @@ export interface IPlatform extends Document {
   totalListings: number;
   averageResponseTime: number; // in milliseconds
   successRate: number; // percentage
+  brands?: string[]; // Array of brands available on this platform
+  totalBrands?: number; // Count of unique brands
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +53,16 @@ const PlatformSchema = new Schema<IPlatform>(
       default: 100,
       min: [0, "Success rate cannot be less than 0"],
       max: [100, "Success rate cannot be more than 100"],
+    },
+    brands: {
+      type: [String],
+      default: [],
+      index: true,
+    },
+    totalBrands: {
+      type: Number,
+      default: 0,
+      min: [0, "Total brands cannot be negative"],
     },
   },
   {
