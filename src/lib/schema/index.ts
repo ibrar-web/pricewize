@@ -10,4 +10,6 @@ export { ScrapeLog, type IScrapeLog } from "./ScrapeLog";
 export { PriceHistory, type IPriceHistory } from "./PriceHistory";
 export { Platform, type IPlatform } from "./Platform";
 export { User, type IUser } from "./User";
+export { Admin } from "./Admin";
+export { SearchLog } from "./SearchLog";
 

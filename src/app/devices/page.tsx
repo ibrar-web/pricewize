@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SearchBar } from "@/components/SearchBar";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { DeviceCard } from "@/components/ui/DeviceCard";
+import { SkeletonGrid } from "@/components/ui/Skeleton";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 
 interface Device {
@@ -93,17 +96,27 @@ export default function DevicesPage() {
           <LoadingOverlay isVisible={loading} message="Loading devices..." />
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-red-900">Error</h3>
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {!loading && displayDevices.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
+          {loading ? (
+            <SkeletonGrid count={6} />
+          ) : !loading && displayDevices.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-lg shadow p-12 text-center"
+            >
               <p className="text-gray-600 text-lg mb-4">
                 {searching ? "No devices found matching your search" : "No devices available yet"}
               </p>
@@ -118,38 +131,27 @@ export default function DevicesPage() {
                   Clear search
                 </button>
               )}
-            </div>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayDevices.map((device) => (
-                <Link
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {displayDevices.map((device, index) => (
+                <DeviceCard
                   key={device._id}
-                  href={`/devices/${device.modelSlug}`}
-                  className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden"
-                >
-                  <div className="aspect-square bg-gray-200 flex items-center justify-center">
-                    {device.image ? (
-                      <img
-                        src={device.image}
-                        alt={device.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-gray-400 text-center">
-                        <p className="text-sm">No image</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <p className="text-sm text-gray-600 mb-1">{device.brand}</p>
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {device.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 capitalize">{device.category}</p>
-                  </div>
-                </Link>
+                  id={device._id}
+                  name={device.name}
+                  brand={device.brand}
+                  slug={device.modelSlug}
+                  category={device.category}
+                  image={device.image}
+                  index={index}
+                />
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       </main>
