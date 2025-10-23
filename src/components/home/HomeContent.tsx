@@ -103,13 +103,13 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
   return (
     <main className="min-h-screen bg-linear-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-24">
-        <div className="text-center mb-12">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="text-center mb-6">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+            className="text-3xl md:text-4xl font-bold text-gray-900 mb-2"
           >
             Find the Smartest Deals on Used Devices
           </motion.h1>
@@ -117,7 +117,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto"
+            className="text-lg text-gray-600 mb-4 max-w-2xl mx-auto"
           >
             Compare prices from OLX, Cashify, eBay and more. Get the best deal
             on your next used phone, laptop, or tablet.
@@ -129,7 +129,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center mb-16"
+          className="flex justify-center mb-8"
         >
         </motion.div>
 
@@ -139,9 +139,9 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mt-20"
+          className="mt-8"
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
             Browse Devices
           </h2>
 
@@ -150,11 +150,11 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
 
           {/* Device Cards Grid */}
           {loading ? (
-            <div className="text-center py-12">
+            <div className="text-center py-6">
               <p className="text-gray-600">Loading devices...</p>
             </div>
           ) : filteredDevices.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
+            <div className="text-center py-6 bg-white rounded-lg shadow">
               <p className="text-gray-600 text-lg">
                 {filters.searchQuery ||
                 filters.minPrice > 0 ||
@@ -193,7 +193,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-16"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8"
         >
           <FeatureCard
             icon={<TrendingDown size={24} />}
@@ -239,7 +239,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className="bg-linear-to-r from-blue-600 to-purple-600 text-white pb-6"
+        className="bg-linear-to-r from-blue-600 to-purple-600 text-white py-6"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h2
@@ -247,7 +247,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="text-3xl font-bold mb-4"
+            className="text-2xl font-bold mb-2"
           >
             Start Comparing Prices Today
           </motion.h2>
@@ -256,7 +256,7 @@ export function HomeContent({ initialTrendingDevices = [] }: HomeContentProps) {
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
-            className="text-blue-100 mb-8 max-w-2xl mx-auto"
+            className="text-blue-100 mb-4 max-w-2xl mx-auto text-sm"
           >
             Save money on your next used device purchase. Compare prices from
             multiple platforms and find the best deal.

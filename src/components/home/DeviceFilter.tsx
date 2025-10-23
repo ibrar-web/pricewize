@@ -68,10 +68,10 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white rounded-lg shadow-md p-6 mb-8"
+      className="bg-white rounded-lg shadow-md p-4 mb-6"
     >
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-3">
         <div className="relative">
           <Search className="absolute left-3 top-3 text-gray-400" size={20} />
           <input
@@ -79,7 +79,7 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
             placeholder="Search devices by name or brand..."
             value={filters.searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
       </div>
@@ -87,12 +87,12 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
       {/* Filter Toggle Button */}
       <button
         onClick={() => setShowFilters(!showFilters)}
-        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-4"
+        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium mb-3 text-sm"
       >
-        <Filter size={18} />
+        <Filter size={16} />
         {showFilters ? "Hide Filters" : "Show Filters"}
         {hasActiveFilters && (
-          <span className="ml-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+          <span className="ml-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
             Active
           </span>
         )}
@@ -105,14 +105,14 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200"
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-200"
         >
           {/* Price Range */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-xs font-semibold text-gray-700 mb-2">
               Price Range
             </label>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div>
                 <label className="text-xs text-gray-600">Min: ₨{filters.minPrice.toLocaleString()}</label>
                 <input
@@ -142,13 +142,13 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
 
           {/* Location Filter */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-xs font-semibold text-gray-700 mb-2">
               Location
             </label>
             <select
               value={filters.selectedLocation}
               onChange={handleLocationChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Locations</option>
               {locations.map((location) => (
@@ -164,9 +164,9 @@ export function DeviceFilter({ onFilterChange, locations = [] }: DeviceFilterPro
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
               >
-                <X size={18} />
+                <X size={16} />
                 Reset Filters
               </button>
             )}
