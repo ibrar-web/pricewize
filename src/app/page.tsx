@@ -24,7 +24,7 @@ export const metadata = {
     title: "PriceWize - Find the Smartest Deals on Used Devices",
     description:
       "Compare used device prices across multiple platforms instantly.",
-    url: "https://pricewize.com",
+    url: "https://pricewize-steel.vercel.app",
     siteName: "PriceWize",
   },
 };
