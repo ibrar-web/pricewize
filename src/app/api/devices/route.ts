@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { Device, Price } from "@/lib/schema";
+import { Device } from "@/lib/schema";
 import { mockDevices } from "@/lib/mockData";
 
 /**
@@ -53,40 +53,73 @@ export async function GET(request: Request) {
         ];
       }
 
-      // Get total count
-      const total = await Device.countDocuments(query);
+      // Build aggregation pipeline for optimized query
+      const matchStage: any = {};
 
-      // Get paginated devices
-      const devices = await Device.find(query)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean();
+      if (category) {
+        matchStage.category = category;
+      }
 
-      // Fetch lowest price for each device and apply filters
-      let devicesWithPrices = await Promise.all(
-        devices.map(async (device: any) => {
-          let priceQuery: any = { deviceId: device._id };
+      if (brand) {
+        matchStage.brand = brand;
+      }
 
-          // Apply location filter if provided
-          if (location) {
-            priceQuery.location = location;
-          }
+      if (search) {
+        matchStage.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { brand: { $regex: search, $options: "i" } },
+          { modelSlug: { $regex: search, $options: "i" } },
+        ];
+      }
 
-          const lowestPrice = await Price.findOne(priceQuery)
-            .sort({ price: 1 })
-            .select("price")
-            .lean() as any;
+      // Aggregation pipeline for devices with prices
+      const pipeline: any[] = [
+        { $match: matchStage },
+        { $sort: { createdAt: -1 } },
+        {
+          $lookup: {
+            from: "prices",
+            let: { deviceId: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$deviceId", "$$deviceId"] },
+                  ...(location && { location }),
+                },
+              },
+              { $sort: { price: 1 } },
+              { $limit: 1 },
+            ],
+            as: "lowestPriceData",
+          },
+        },
+        {
+          $addFields: {
+            lowestPrice: {
+              $cond: [
+                { $gt: [{ $size: "$lowestPriceData" }, 0] },
+                { $arrayElemAt: ["$lowestPriceData.price", 0] },
+                null,
+              ],
+            },
+          },
+        },
+        { $project: { lowestPriceData: 0 } },
+      ];
 
-          return {
-            ...device,
-            _id: device._id.toString(),
-            lowestPrice: lowestPrice?.price || null,
-          };
-        })
-      );
+      // Get total count before pagination
+      const countPipeline = [...pipeline, { $count: "total" }];
+      const countResult = await Device.aggregate(countPipeline);
+      const total = countResult[0]?.total || 0;
 
-      // Apply price range filters
+      // Add pagination to pipeline
+      pipeline.push({ $skip: (page - 1) * limit });
+      pipeline.push({ $limit: limit });
+
+      // Execute aggregation
+      let devicesWithPrices = await Device.aggregate(pipeline);
+
+      // Apply price range filters (after aggregation)
       if (minPrice !== undefined || maxPrice !== undefined) {
         devicesWithPrices = devicesWithPrices.filter((device: any) => {
           if (device.lowestPrice === null) return false;
@@ -95,6 +128,12 @@ export async function GET(request: Request) {
           return true;
         });
       }
+
+      // Convert _id to string for consistency
+      devicesWithPrices = devicesWithPrices.map((device: any) => ({
+        ...device,
+        _id: device._id.toString(),
+      }));
 
       const response = NextResponse.json(
         {
