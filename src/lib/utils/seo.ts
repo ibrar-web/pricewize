@@ -30,7 +30,7 @@ export function generateDeviceMetadata(device: {
       type: "website",
       images: [
         {
-          url: `https://pricewize.com/og-image.png`,
+          url: `https://pricewize.com/og-image.jpg`,
           width: 1200,
           height: 630,
           alt: device.name,
@@ -41,7 +41,7 @@ export function generateDeviceMetadata(device: {
       card: "summary_large_image",
       title,
       description,
-      images: [`https://pricewize.com/og-image.png`],
+      images: [`https://pricewize.com/og-image.jpg`],
     },
     alternates: {
       canonical: url,
@@ -129,7 +129,7 @@ export const SITE_CONFIG = {
   name: "PriceWize",
   description: "Compare used device prices across multiple platforms in Pakistan",
   url: "https://pricewize.com",
-  ogImage: "https://pricewize.com/og-image.png",
+  ogImage: "https://pricewize.com/og-image.jpg",
   twitterHandle: "@pricewize",
   email: "support@pricewize.com",
 };

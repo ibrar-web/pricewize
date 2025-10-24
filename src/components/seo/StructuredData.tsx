@@ -25,7 +25,7 @@ export function OrganizationSchema() {
     "@type": "Organization",
     name: "PriceWize",
     url: "https://pricewize-steel.vercel.app",
-    logo: "https://pricewize-steel.vercel.app/logo.png",
+    logo: "https://pricewize-steel.vercel.app/og-image.jpg",
     description:
       "PriceWize is a used device price comparison platform that helps you find the best deals on used phones, laptops, tablets and more across multiple marketplaces.",
     sameAs: [

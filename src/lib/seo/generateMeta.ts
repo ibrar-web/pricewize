@@ -31,7 +31,7 @@ export function generateMetadata(
     canonical,
     ogTitle: title,
     ogDescription: description,
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.jpg`,
   };
 }
 
@@ -51,7 +51,7 @@ export function generateHomeMetadata(): SEOMetadata {
     canonical: SITE_URL,
     ogTitle: `${SITE_NAME} - Find the Smartest Deals on Used Devices`,
     ogDescription: DEFAULT_DESCRIPTION,
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.jpg`,
   };
 }
 

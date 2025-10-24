@@ -1,29 +1,19 @@
-# Allow all bots to crawl public pages
+# *
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
-Disallow: /_next/
-Disallow: /public/
 
-# Specific rules for Googlebot
+# Googlebot
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 0
 
-# Specific rules for Bingbot
+# Bingbot
 User-agent: Bingbot
 Allow: /
-Crawl-delay: 1
 
-# Specific rules for other bots
-User-agent: Slurp
-Allow: /
-Crawl-delay: 1
-
-User-agent: DuckDuckBot
-Allow: /
+# Host
+Host: http://localhost:3000
 
 # Sitemaps
-Sitemap: https://pricewize-steel.vercel.app/sitemap.xml
-Sitemap: https://pricewize-steel.vercel.app/sitemap-0.xml
+Sitemap: http://localhost:3000/sitemap.xml

@@ -34,7 +34,7 @@ export function generateOrganizationSchema() {
     "@type": "Organization",
     name: "PriceWize",
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
+    logo: `${SITE_URL}/og-image.jpg`,
     description: "Find the smartest deals on used devices",
     sameAs: [
       "https://twitter.com/pricewize",

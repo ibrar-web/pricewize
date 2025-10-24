@@ -79,7 +79,7 @@ export const seoConfig = {
     siteName: "PriceWize",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com"}/og-image.png`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com"}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: "PriceWize - Compare Used Device Prices",
@@ -101,7 +101,7 @@ export const seoConfig = {
       "@type": "Organization",
       name: "PriceWize",
       url: process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com",
-      logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com"}/logo.png`,
+      logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pricewize.com"}/og-image.jpg`,
       description: "Find the smartest deals on used devices",
       sameAs: [
         "https://twitter.com/pricewize",

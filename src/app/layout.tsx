@@ -38,6 +38,15 @@ export const metadata: Metadata = {
     siteName: "PriceWize",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "https://pricewize-steel.vercel.app/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "PriceWize - Compare Used Device Prices Across Multiple Platforms",
+        type: "image/jpeg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
