@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { CompareTable } from "@/components/device/CompareTable";
 import { PriceCard } from "@/components/device/PriceCard";
 import { CompareButton } from "@/components/device/CompareButton";
+import { PlatformComparison } from "@/components/PlatformComparison";
 import { connectDB } from "@/lib/db";
 import { Device, Price } from "@/lib/schema";
 import { generateMetadata as generateSEOMeta } from "@/lib/seo/generateMeta";
@@ -25,14 +26,64 @@ async function getDeviceComparison(modelSlug: string) {
   try {
     await connectDB();
 
-    // Use optimized cached data fetching
-    const cachedData = await getDeviceWithPrices(normalizedSlug);
+    // Fetch device with prices and platform comparison
+    const device = await Device.findOne({
+      modelSlug: normalizedSlug,
+    });
 
-    if (!cachedData) {
+    if (!device) {
       throw new Error("Device not found");
     }
 
-    const { device, prices, stats } = cachedData;
+    const prices = await Price.find({ deviceId: device._id }).sort({
+      price: 1,
+    });
+
+    if (prices.length === 0) {
+      throw new Error("No prices found for device");
+    }
+
+    // Group prices by platform
+    const pricesByPlatform = prices.reduce(
+      (acc: any, p: any) => {
+        if (!acc[p.platform]) {
+          acc[p.platform] = [];
+        }
+        acc[p.platform].push(p);
+        return acc;
+      },
+      {}
+    );
+
+    // Calculate statistics per platform
+    const platformComparison = Object.entries(pricesByPlatform).map(
+      ([platform, platformPrices]: [string, any]) => {
+        const platformPriceValues = platformPrices.map((p: any) => p.price);
+        const newListings = platformPrices.filter(
+          (p: any) => p.listingType === "New"
+        );
+        const usedListings = platformPrices.filter(
+          (p: any) => p.listingType === "Used" || p.listingType === "Refurbished"
+        );
+
+        return {
+          platform,
+          totalListings: platformPrices.length,
+          newListings: newListings.length,
+          usedListings: usedListings.length,
+          lowestPrice: Math.min(...platformPriceValues),
+          highestPrice: Math.max(...platformPriceValues),
+          averagePrice: Math.round(
+            platformPriceValues.reduce((a: number, b: number) => a + b, 0) /
+              platformPriceValues.length
+          ),
+          listings: platformPrices,
+        };
+      }
+    );
+
+    // Calculate overall statistics
+    const priceValues = prices.map((p: any) => p.price);
 
     return {
       device: {
@@ -45,10 +96,14 @@ async function getDeviceComparison(modelSlug: string) {
       },
       model: device.name,
       listings: prices,
-      lowestPrice: stats.lowestPrice,
-      highestPrice: stats.highestPrice,
-      averagePrice: stats.averagePrice,
-      totalListings: stats.totalListings,
+      platformComparison,
+      lowestPrice: Math.min(...priceValues),
+      highestPrice: Math.max(...priceValues),
+      averagePrice: Math.round(
+        priceValues.reduce((a: number, b: number) => a + b, 0) /
+          priceValues.length
+      ),
+      totalListings: prices.length,
     };
   } catch (error) {
     console.warn("⚠️ MongoDB failed, trying mock data for:", normalizedSlug, error);
@@ -250,6 +305,20 @@ export default async function DevicePage({ params }: PageProps) {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-12">
             <CompareTable comparison={comparison} />
           </div>
+
+          {/* Platform Comparison */}
+          {comparison.platformComparison && comparison.platformComparison.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Platform Comparison
+              </h2>
+              <PlatformComparison
+                platformStats={comparison.platformComparison}
+                overallLowest={comparison.lowestPrice}
+                overallHighest={comparison.highestPrice}
+              />
+            </div>
+          )}
 
           {/* Individual Listings */}
           <div>

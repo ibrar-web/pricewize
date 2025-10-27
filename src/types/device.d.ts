@@ -3,6 +3,7 @@ export interface DeviceListing {
   model: string;
   price: number;
   condition: "Excellent" | "Good" | "Fair" | "Poor";
+  listingType: "New" | "Used" | "Refurbished" | "Unknown";
   location: string;
   platform: "OLX" | "Cashify" | "eBay" | "Other";
   url: string;
@@ -26,8 +27,17 @@ export interface NormalizedDevice {
 }
 
 export interface DeviceComparison {
+  device: {
+    id: string;
+    name: string;
+    brand: string;
+    modelSlug: string;
+    category: string;
+    image: string;
+  };
   model: string;
-  listings: DeviceListing[];
+  listings: any[];
+  platformComparison?: any[];
   lowestPrice: number;
   highestPrice: number;
   averagePrice: number;

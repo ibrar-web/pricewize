@@ -4,6 +4,7 @@ export interface OLXListing {
   title: string;
   price: number;
   condition: string;
+  listingType: "New" | "Used" | "Refurbished" | "Unknown";
   location: string;
   url: string;
   image: string;
@@ -134,7 +135,8 @@ export async function scrapeOLXPakistanWeb(searchQuery: string): Promise<OLXList
           listings.push({
             title,
             price,
-            condition: "Used",
+            condition: "Good",
+            listingType: "Used", // OLX is primarily for used items
             location: location || "Pakistan",
             url,
             image,

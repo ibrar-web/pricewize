@@ -55,7 +55,47 @@ export async function GET(
       );
     }
 
-    // Calculate statistics
+    // Group prices by platform and condition
+    const pricesByPlatform = prices.reduce(
+      (acc, p) => {
+        if (!acc[p.platform]) {
+          acc[p.platform] = [];
+        }
+        acc[p.platform].push(p);
+        return acc;
+      },
+      {} as Record<string, (typeof prices)[0][]>
+    );
+
+    // Calculate statistics per platform
+    type PriceRecord = Record<string, typeof prices>;
+    const platformStats = Object.entries(pricesByPlatform as PriceRecord).map(
+      ([platform, platformPrices]) => {
+        const platformPriceValues = platformPrices.map((p) => p.price);
+        const newListings = platformPrices.filter(
+          (p) => p.listingType === "New"
+        );
+        const usedListings = platformPrices.filter(
+          (p) => p.listingType === "Used" || p.listingType === "Refurbished"
+        );
+
+        return {
+          platform,
+          totalListings: platformPrices.length,
+          newListings: newListings.length,
+          usedListings: usedListings.length,
+          lowestPrice: Math.min(...platformPriceValues),
+          highestPrice: Math.max(...platformPriceValues),
+          averagePrice: Math.round(
+            platformPriceValues.reduce((a: number, b: number) => a + b, 0) /
+              platformPriceValues.length
+          ),
+          listings: platformPrices,
+        };
+      }
+    );
+
+    // Calculate overall statistics
     const priceValues = prices.map((p) => p.price);
     const comparison = {
       device: {
@@ -67,6 +107,7 @@ export async function GET(
         image: device.image,
       },
       listings: prices,
+      platformComparison: platformStats,
       statistics: {
         lowestPrice: Math.min(...priceValues),
         highestPrice: Math.max(...priceValues),

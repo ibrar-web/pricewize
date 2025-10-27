@@ -4,6 +4,7 @@ export interface PriceOyeListing {
   title: string;
   price: number;
   condition: string;
+  listingType: "New" | "Used" | "Refurbished" | "Unknown";
   location: string;
   url: string;
   image: string;
@@ -110,7 +111,8 @@ export async function scrapePriceOyePakistanWeb(
           listings.push({
             title,
             price,
-            condition: "New",
+            condition: "Excellent",
+            listingType: "New", // PriceOye sells new devices
             location: "Pakistan",
             url,
             image,

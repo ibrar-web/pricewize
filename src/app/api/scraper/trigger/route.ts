@@ -81,6 +81,7 @@ async function runScraper(query: string = "iPhone", platform: string = "all") {
               platform: listing.platform,
               price: listing.price,
               condition: listing.condition,
+              listingType: listing.listingType,
               url: listing.url,
               location: listing.location,
               image: listing.image,
@@ -102,6 +103,7 @@ async function runScraper(query: string = "iPhone", platform: string = "all") {
                 platform: listing.platform,
                 price: listing.price,
                 condition: listing.condition,
+                listingType: listing.listingType,
                 url: listing.url,
                 location: listing.location,
                 image: listing.image,
@@ -203,11 +205,20 @@ export async function POST(request: NextRequest) {
             } else if (platformStr === "PriceOye") {
               validPlatform = "PriceOye";
             }
+            const listingTypeStr = String(pd.listingType || "Unknown");
+            let validListingType: "New" | "Used" | "Refurbished" | "Unknown" = "Unknown";
+            if (["New", "Used", "Refurbished"].includes(listingTypeStr)) {
+              validListingType = listingTypeStr as "New" | "Used" | "Refurbished";
+            }
+
+            console.log(`💾 Saving price with listingType: ${validListingType}, from pd.listingType: ${pd.listingType}`);
+
             const price = new Price({
               deviceId: newDevice._id,
               platform: validPlatform,
               price: Number(pd.price),
               condition: normalizeCondition(String(pd.condition)),
+              listingType: validListingType,
               url: String(pd.url),
               location: String(pd.location),
               sellerName: String(pd.sellerName),
@@ -236,11 +247,18 @@ export async function POST(request: NextRequest) {
               } else if (platformStr === "PriceOye") {
                 validPlatform = "PriceOye";
               }
+              const listingTypeStr = String(pd.listingType || "Unknown");
+              let validListingType: "New" | "Used" | "Refurbished" | "Unknown" = "Unknown";
+              if (["New", "Used", "Refurbished"].includes(listingTypeStr)) {
+                validListingType = listingTypeStr as "New" | "Used" | "Refurbished";
+              }
+
               const price = new Price({
                 deviceId: existingDevice._id,
                 platform: validPlatform,
                 price: Number(pd.price),
                 condition: normalizeCondition(String(pd.condition)),
+                listingType: validListingType,
                 url: String(pd.url),
                 location: String(pd.location),
                 sellerName: String(pd.sellerName),

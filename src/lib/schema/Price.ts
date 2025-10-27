@@ -5,6 +5,7 @@ export interface IPrice extends Document {
   platform: "OLX" | "PriceOye" | "Other";
   price: number;
   condition: "Excellent" | "Good" | "Fair" | "Poor";
+  listingType: "New" | "Used" | "Refurbished" | "Unknown";
   location: string;
   sellerName?: string;
   url: string;
@@ -40,6 +41,12 @@ const PriceSchema = new Schema<IPrice>(
       type: String,
       enum: ["Excellent", "Good", "Fair", "Poor"],
       default: "Good",
+      index: true,
+    },
+    listingType: {
+      type: String,
+      enum: ["New", "Used", "Refurbished", "Unknown"],
+      default: "Unknown",
       index: true,
     },
     location: {
@@ -86,6 +93,7 @@ const PriceSchema = new Schema<IPrice>(
 // Compound indexes for efficient queries
 PriceSchema.index({ deviceId: 1, platform: 1 });
 PriceSchema.index({ deviceId: 1, price: 1 });
+PriceSchema.index({ deviceId: 1, listingType: 1 }); // For new/used filtering
 PriceSchema.index({ platform: 1, lastScraped: -1 });
 PriceSchema.index({ lastScraped: -1 }); // For cleanup queries
 
