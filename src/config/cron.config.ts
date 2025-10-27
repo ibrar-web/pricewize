@@ -45,12 +45,7 @@ export const cronConfig = {
       timeout: 30000,
       retryAttempts: 2,
     },
-    cashify: {
-      enabled: true,
-      timeout: 30000,
-      retryAttempts: 2,
-    },
-    ebay: {
+    priceoye: {
       enabled: true,
       timeout: 30000,
       retryAttempts: 2,

@@ -1,21 +1,27 @@
 import { scrapeOLXPakistan } from "./olxScraper";
+import { scrapePriceOyePakistan } from "./priceyeScraper";
 
 /**
  * Main scraper orchestrator
- * Runs OLX scraper only
+ * Runs OLX and PriceOye scrapers
  */
 
 export async function runAllScrapers(): Promise<any[]> {
-  console.log("🚀 Starting OLX scraper at", new Date().toISOString());
+  console.log("🚀 Starting all scrapers at", new Date().toISOString());
 
   const results: any[] = [];
 
   try {
-    // Run OLX scraper only
+    // Run OLX scraper
     const olxListings = await scrapeOLXPakistan("iPhone");
-
     results.push(
       { platform: "OLX", count: olxListings.length, success: true }
+    );
+
+    // Run PriceOye scraper
+    const priceoyeListings = await scrapePriceOyePakistan("samsung");
+    results.push(
+      { platform: "PriceOye", count: priceoyeListings.length, success: true }
     );
 
     // Log results
@@ -27,7 +33,7 @@ export async function runAllScrapers(): Promise<any[]> {
       }
     });
 
-    console.log("✅ OLX scraper completed at", new Date().toISOString());
+    console.log("✅ All scrapers completed at", new Date().toISOString());
   } catch (error) {
     console.error("Fatal scraper error:", error);
   }
@@ -36,5 +42,6 @@ export async function runAllScrapers(): Promise<any[]> {
 }
 
 export { scrapeOLXPakistan, scrapeOLXPakistanWeb } from "./olxScraper";
+export { scrapePriceOyePakistan, scrapePriceOyePakistanWeb } from "./priceyeScraper";
 export { normalizeModel, extractBrand, extractCondition } from "./normalizeModel";
 

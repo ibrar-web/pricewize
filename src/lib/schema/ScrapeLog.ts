@@ -1,7 +1,7 @@
 import mongoose, { Schema, models, Document } from "mongoose";
 
 export interface IScrapeLog extends Document {
-  platform: "OLX" | "Cashify" | "eBay" | "All";
+  platform: "OLX" | "PriceOye" | "All";
   status: "success" | "error" | "partial";
   message: string;
   itemsScraped?: number;
@@ -15,7 +15,7 @@ const ScrapeLogSchema = new Schema<IScrapeLog>(
   {
     platform: {
       type: String,
-      enum: ["OLX", "Cashify", "eBay", "All"],
+      enum: ["OLX", "PriceOye", "All"],
       required: [true, "Platform is required"],
       index: true,
     },

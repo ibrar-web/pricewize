@@ -7,10 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "scrape": "node --loader ts-node/esm src/scripts/cronScraper.ts",
-    "scrape:olx": "node --loader ts-node/esm src/scripts/cronScraper.ts olx",
-    "scrape:cashify": "node --loader ts-node/esm src/scripts/cronScraper.ts cashify",
-    "scrape:ebay": "node --loader ts-node/esm src/scripts/cronScraper.ts ebay",
+    "scrape": "node --loader ts-node/esm scripts/cron-scraper.ts",
+    "scrape:olx": "node --loader ts-node/esm scripts/cron-scraper.ts olx",
+    "scrape:priceoye": "node --loader ts-node/esm scripts/cron-scraper.ts priceoye",
     "sitemap": "next-sitemap --config next-sitemap.config.js",
     "postbuild": "next-sitemap --config next-sitemap.config.js",
     "generate:og-image": "node scripts/generate-og-image.js"

@@ -66,23 +66,13 @@ export async function GET() {
         },
         {
           deviceId: device._id,
-          platform: "Cashify",
+          platform: "PriceOye",
           price: 48000,
           condition: "Good",
           location: "Lahore",
-          sellerName: "Cashify",
-          url: "https://cashify.pk/item/1",
+          sellerName: "PriceOye",
+          url: "https://priceoye.pk/item/1",
           description: "Good condition",
-        },
-        {
-          deviceId: device._id,
-          platform: "eBay",
-          price: 52000,
-          condition: "Fair",
-          location: "Islamabad",
-          sellerName: "eBay Seller",
-          url: "https://ebay.com/item/1",
-          description: "Fair condition, some scratches",
         },
       ]);
       console.log("✅ Sample prices created");

@@ -32,7 +32,7 @@ async function runDailyScraper() {
 
     // Update prices for each device
     for (const device of devices) {
-      const platforms = ["olx", "cashify", "ebay", "priceoye"];
+      const platforms = ["OLX", "PriceOye"];
 
       for (const platform of platforms) {
         // Check if price exists
@@ -52,12 +52,14 @@ async function runDailyScraper() {
           itemsUpdated++;
         } else {
           // Add new price
+          const platformUrl = platform === "OLX" ? "olx.com.pk" : "priceoye.pk";
           const newPrice = new Price({
             deviceId: device._id,
             platform,
             price: Math.floor(Math.random() * 100000) + 10000,
-            condition: Math.random() > 0.3 ? "used" : "refurbished",
-            url: `https://${platform}.com/device/${device.modelSlug}`,
+            condition: "Good",
+            url: `https://${platformUrl}/device/${device.modelSlug}`,
+            location: "Pakistan",
           });
           await newPrice.save();
           itemsAdded++;

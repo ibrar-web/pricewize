@@ -177,12 +177,12 @@ export const mockPrices = [
   {
     _id: "p7",
     deviceId: "3",
-    platform: "Cashify",
+    platform: "PriceOye",
     price: 185000,
     condition: "Good",
     location: "Lahore",
-    sellerName: "Cashify",
-    url: "https://cashify.pk",
+    sellerName: "PriceOye",
+    url: "https://priceoye.pk",
     description: "MacBook Pro 16 with AppleCare",
   },
 ];

@@ -2,7 +2,7 @@ import mongoose, { Schema, models, Document } from "mongoose";
 
 export interface IPrice extends Document {
   deviceId: mongoose.Types.ObjectId;
-  platform: "OLX" | "Cashify" | "eBay" | "Other";
+  platform: "OLX" | "PriceOye" | "Other";
   price: number;
   condition: "Excellent" | "Good" | "Fair" | "Poor";
   location: string;
@@ -26,7 +26,7 @@ const PriceSchema = new Schema<IPrice>(
     },
     platform: {
       type: String,
-      enum: ["OLX", "Cashify", "eBay", "Other"],
+      enum: ["OLX", "PriceOye", "Other"],
       required: [true, "Platform is required"],
       index: true,
     },

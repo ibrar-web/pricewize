@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { ScrapeLog, Device, Price, Platform } from "@/lib/schema";
 import { scrapeOLXPakistanWeb } from "@/lib/scraper/olxScraper";
+import { scrapePriceOyePakistanWeb } from "@/lib/scraper/priceyeScraper";
 import { normalizeModel, extractBrand } from "@/lib/scraper/normalizeModel";
 
 /**
@@ -28,20 +29,35 @@ function normalizeCondition(condition: string): "Excellent" | "Good" | "Fair" | 
 
 /**
  * Real scraper function that calls actual marketplace scrapers
- * Processes OLX listings and normalizes them into device data
+ * Processes listings and normalizes them into device data
  */
-async function runScraper(query: string = "iPhone") {
+async function runScraper(query: string = "iPhone", platform: string = "all") {
   try {
-    console.log(`🚀 Running real scraper for query: ${query}`);
+    console.log(`🚀 Running real scraper for query: ${query}, platform: ${platform}`);
 
-    // Scrape OLX for listings (using web scraper for server environment)
-    const olxListings = await scrapeOLXPakistanWeb(query);
-    console.log(`📦 OLX returned ${olxListings.length} listings`);
+    let allListings: any[] = [];
+
+    // Scrape based on platform
+    if (platform === "olx" || platform === "all") {
+      const olxListings = await scrapeOLXPakistanWeb(query);
+      console.log(`📦 OLX returned ${olxListings.length} listings`);
+      allListings = allListings.concat(
+        olxListings.map((l) => ({ ...l, platform: "OLX" }))
+      );
+    }
+
+    if (platform === "priceoye" || platform === "all") {
+      const priceoyeListings = await scrapePriceOyePakistanWeb(query);
+      console.log(`📦 PriceOye returned ${priceoyeListings.length} listings`);
+      allListings = allListings.concat(
+        priceoyeListings.map((l) => ({ ...l, platform: "PriceOye" }))
+      );
+    }
 
     // Process listings into normalized device data
     const devices: Record<string, unknown>[] = [];
 
-    for (const listing of olxListings) {
+    for (const listing of allListings) {
       try {
         // Extract brand and model from title
         const brand = extractBrand(listing.title);
@@ -62,7 +78,7 @@ async function runScraper(query: string = "iPhone") {
           (existingDevice as Record<string, unknown>).prices = [
             ...((existingDevice as Record<string, unknown>).prices as unknown[]),
             {
-              platform: "OLX",
+              platform: listing.platform,
               price: listing.price,
               condition: listing.condition,
               url: listing.url,
@@ -83,7 +99,7 @@ async function runScraper(query: string = "iPhone") {
             description: listing.description,
             prices: [
               {
-                platform: "OLX",
+                platform: listing.platform,
                 price: listing.price,
                 condition: listing.condition,
                 url: listing.url,
@@ -114,11 +130,12 @@ export async function POST(request: NextRequest) {
 
     const { query, platform } = await request.json();
     console.log(`📝 Query: ${query}, Platform: ${platform}`);
+    console.log(`🔍 Platform type: ${typeof platform}, value: "${platform}"`);
 
     // Run scraper with timeout
     console.log("🚀 Starting scraper...");
     const scrapedData = await Promise.race([
-      runScraper(query),
+      runScraper(query, platform || "all"),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Scraper timeout")), 30000)
       ),
@@ -131,7 +148,19 @@ export async function POST(request: NextRequest) {
       console.log("✅ Database connected");
 
       // Create scrape log
-      const platformName = (platform || "OLX").toUpperCase() === "OLX" ? "OLX" : "All";
+      let platformName: "OLX" | "PriceOye" | "All" = "All";
+      const platformLower = String(platform || "all").toLowerCase().trim();
+
+      if (platformLower === "olx") {
+        platformName = "OLX";
+      } else if (platformLower === "priceoye") {
+        platformName = "PriceOye";
+      } else if (platformLower === "all") {
+        platformName = "All";
+      }
+
+      console.log(`✅ Creating ScrapeLog with platform: ${platformName}`);
+
       const scrapeLog = new ScrapeLog({
         status: "partial",
         platform: platformName,
@@ -167,9 +196,16 @@ export async function POST(request: NextRequest) {
           const prices = (item.prices as unknown[]) || [];
           for (const priceData of prices) {
             const pd = priceData as Record<string, unknown>;
+            const platformStr = String(pd.platform);
+            let validPlatform: "OLX" | "PriceOye" | "Other" = "Other";
+            if (platformStr === "OLX") {
+              validPlatform = "OLX";
+            } else if (platformStr === "PriceOye") {
+              validPlatform = "PriceOye";
+            }
             const price = new Price({
               deviceId: newDevice._id,
-              platform: String(pd.platform).toUpperCase() === "OLX" ? "OLX" : "Other",
+              platform: validPlatform,
               price: Number(pd.price),
               condition: normalizeCondition(String(pd.condition)),
               url: String(pd.url),
@@ -193,9 +229,16 @@ export async function POST(request: NextRequest) {
             });
 
             if (!existingPrice) {
+              const platformStr = String(pd.platform);
+              let validPlatform: "OLX" | "PriceOye" | "Other" = "Other";
+              if (platformStr === "OLX") {
+                validPlatform = "OLX";
+              } else if (platformStr === "PriceOye") {
+                validPlatform = "PriceOye";
+              }
               const price = new Price({
                 deviceId: existingDevice._id,
-                platform: String(pd.platform).toUpperCase() === "OLX" ? "OLX" : "Other",
+                platform: validPlatform,
                 price: Number(pd.price),
                 condition: normalizeCondition(String(pd.condition)),
                 url: String(pd.url),
@@ -212,27 +255,47 @@ export async function POST(request: NextRequest) {
 
       // Update Platform collection with statistics
       try {
-        const platformName = (platform || "OLX").toUpperCase() === "OLX" ? "OLX" : "Other";
+        let platformsToUpdate: ("OLX" | "PriceOye")[] = [];
+        if (platform === "all") {
+          platformsToUpdate = ["OLX", "PriceOye"];
+        } else {
+          const platformLower = String(platform || "olx").toLowerCase();
+          if (platformLower === "olx") {
+            platformsToUpdate = ["OLX"];
+          } else if (platformLower === "priceoye") {
+            platformsToUpdate = ["PriceOye"];
+          } else {
+            platformsToUpdate = ["OLX"];
+          }
+        }
 
-        // Get all prices for this platform to calculate statistics
-        const platformPrices = await Price.find({ platform: platformName }).lean();
-        const uniqueBrands = [...new Set(platformPrices.map((p: any) => p.brand).filter(Boolean))] as string[];
+        for (const platformName of platformsToUpdate) {
+          // Get all prices for this platform to calculate statistics
+          const platformPrices = await Price.find({ platform: platformName }).lean();
+          const uniqueBrands = [
+            ...new Set(
+              platformPrices.map((p: Record<string, unknown>) => p.brand).filter(Boolean)
+            ),
+          ] as string[];
 
-        // Update or create platform record
-        await Platform.findOneAndUpdate(
-          { name: platformName },
-          {
-            name: platformName,
-            isActive: true,
-            lastScraped: new Date(),
-            totalListings: platformPrices.length,
-            totalBrands: uniqueBrands.length,
-            brands: uniqueBrands,
-          },
-          { upsert: true, new: true }
-        );
+          // Update or create platform record
+          await Platform.findOneAndUpdate(
+            { name: platformName },
+            {
+              name: platformName,
+              isActive: true,
+              lastScraped: new Date(),
+              totalListings: platformPrices.length,
+              totalBrands: uniqueBrands.length,
+              brands: uniqueBrands,
+            },
+            { upsert: true, new: true }
+          );
 
-        console.log(`✅ Updated Platform: ${platformName} with ${platformPrices.length} listings and ${uniqueBrands.length} brands`);
+          console.log(
+            `✅ Updated Platform: ${platformName} with ${platformPrices.length} listings and ${uniqueBrands.length} brands`
+          );
+        }
       } catch (platformError) {
         console.warn("⚠️ Failed to update Platform collection:", platformError);
       }
